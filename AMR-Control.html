@@ -47,7 +47,8 @@
     <!-- Header / Status Bar -->
     <header class="bg-white shadow-sm h-16 flex justify-between items-center px-6 z-20 shrink-0">
         <div class="flex items-center space-x-2">
-            <img src="https://github.com/hirunnon/Mockup/blob/main/logo_adient.png?raw=true" alt="Logo" class="rounded-lg w-10 h-10">
+            <img src="https://github.com/hirunnon/Mockup/blob/main/logo_adient.png?raw=true" alt="Logo"
+                class="rounded-lg w-10 h-10">
             <h1 class="text-xl font-bold text-blue-800" id="header-title">AMR Control</h1>
         </div>
         <div class="flex items-center space-x-6">
@@ -71,7 +72,7 @@
         <!-- Page: Main Menu -->
         <div id="page-main"
             class="page absolute inset-0 p-6 flex flex-col items-center justify-center transition-opacity duration-300">
-            <div class="grid grid-cols-3 gap-6 w-full max-w-5xl h-full max-h-[600px]">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-5xl h-full max-h-[600px]">
                 <button onclick="navigateTo('page-point-menu')"
                     class="btn-press bg-white rounded-2xl shadow-md flex flex-col items-center justify-center gap-4 border-b-4 border-blue-500 hover:bg-blue-50 transition-colors">
                     <div
@@ -130,11 +131,13 @@
 
         <!-- Page: Point Menu -->
         <div id="page-point-menu" class="page hidden absolute inset-0 p-6 flex-col items-center">
-            <div class="w-full max-w-5xl flex justify-start mb-6">
+            <div class="w-full max-w-5xl flex justify-between items-center mb-6">
                 <button onclick="navigateTo('page-main')"
                     class="btn-press bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
+                <div class="text-2xl font-bold text-blue-800">Point Selection</div>
+                <div class="w-24"></div>
             </div>
             <div class="grid grid-cols-2 gap-8 w-full max-w-4xl mt-10">
                 <button onclick="navigateTo('point-1')"
@@ -153,16 +156,18 @@
         </div>
 
         <!-- Page: Point Detail (Dynamic for #1, #4, #7, #10) -->
-        <div id="page-point-detail" class="page hidden absolute inset-0 p-6 flex-col items-center bg-gray-50">
-            <div class="w-full max-w-5xl flex justify-start mb-4">
+        <div id="page-point-detail"
+            class="page hidden absolute inset-0 p-6 flex-col items-center bg-gray-50 overflow-y-auto">
+            <div class="w-full max-w-5xl flex justify-between items-center mb-6">
                 <button onclick="navigateTo('page-point-menu')"
                     class="btn-press bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
+                <div id="point-detail-title" class="text-2xl font-bold text-blue-800">Point #X</div>
+                <div class="w-24"></div>
             </div>
 
             <div class="w-full max-w-2xl bg-white rounded-3xl shadow-xl p-8 flex flex-col gap-6">
-                <h2 id="point-detail-title" class="text-3xl font-bold text-center text-blue-800 mb-4">Point #X</h2>
 
                 <!-- Scan QR -->
                 <div class="flex justify-center mb-4">
@@ -198,26 +203,22 @@
                 </button>
             </div>
 
-            <!-- Mini Queue Preview -->
-            <div class="w-full max-w-2xl mt-8">
-                <h3 class="text-lg font-bold text-gray-500 mb-2">Last 3 Jobs in Queue</h3>
-                <div id="point-mini-queue" class="space-y-2">
-                    <!-- JS will populate -->
-                </div>
-            </div>
+
         </div>
 
         <!-- Page: FG to Truck -->
-        <div id="page-fg-truck" class="page hidden absolute inset-0 p-6 flex-col items-center bg-gray-50">
-            <div class="w-full max-w-5xl flex justify-start mb-4">
+        <div id="page-fg-truck"
+            class="page hidden absolute inset-0 p-6 flex-col items-center bg-gray-50 overflow-y-auto">
+            <div class="w-full max-w-5xl flex justify-between items-center mb-6">
                 <button onclick="navigateTo('page-main')"
                     class="btn-press bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
+                <div class="text-2xl font-bold text-orange-600">FG to Truck</div>
+                <div class="w-24"></div>
             </div>
 
             <div class="w-full max-w-2xl bg-white rounded-3xl shadow-xl p-8 flex flex-col gap-6">
-                <h2 class="text-3xl font-bold text-center text-orange-600 mb-4">FG to Truck</h2>
 
                 <div class="flex justify-center mb-4">
                     <button onclick="simulateScanQR('fg')"
@@ -246,12 +247,7 @@
                 </button>
             </div>
 
-            <div class="w-full max-w-2xl mt-8">
-                <h3 class="text-lg font-bold text-gray-500 mb-2">Latest FG Jobs</h3>
-                <div id="fg-mini-queue" class="space-y-2">
-                    <!-- JS populate -->
-                </div>
-            </div>
+
         </div>
 
         <!-- Page: Empty Pallet -->
@@ -261,30 +257,33 @@
                     class="btn-press bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
-                <div class="text-xl font-bold text-green-700">Empty Pallet Management</div>
+                <div class="text-2xl font-bold text-green-700">Empty Pallet</div>
                 <div id="pallet-status-summary"
                     class="text-sm font-medium text-gray-600 bg-white px-3 py-1 rounded-lg border border-gray-200">
                     Loading...
                 </div>
             </div>
 
-            <div class="flex-1 w-[95%] max-w-none flex items-center justify-between">
-                <button onclick="prevPage('pallet')"
-                    class="btn-press w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center text-gray-500 hover:bg-gray-100">
-                    <i class="fa-solid fa-chevron-left text-2xl"></i>
-                </button>
-
+            <div class="flex-1 w-[95%] max-w-none flex flex-col items-center">
                 <div id="pallet-grid"
-                    class="flex-1 grid grid-cols-4 gap-6 px-6 h-[500px] overflow-y-auto content-start">
+                    class="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6 overflow-y-auto content-start w-full justify-center">
                     <!-- JS Generated Buttons -->
                 </div>
+            </div>
 
-                <button onclick="nextPage('pallet')"
-                    class="btn-press w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center text-gray-500 hover:bg-gray-100">
-                    <i class="fa-solid fa-chevron-right text-2xl"></i>
+            <!-- Footer Pagination -->
+            <div class="w-[95%] max-w-none flex justify-center items-center space-x-6 mt-4 pb-2">
+                <button id="btn-pallet-prev" onclick="prevPage('pallet')"
+                    class="btn-press w-12 h-12 rounded-full bg-white shadow flex items-center justify-center text-gray-500 hover:bg-gray-100">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="text-lg text-gray-500 font-medium w-32 text-center" id="pallet-pagination-info">Page 1 / 1
+                </div>
+                <button id="btn-pallet-next" onclick="nextPage('pallet')"
+                    class="btn-press w-12 h-12 rounded-full bg-white shadow flex items-center justify-center text-gray-500 hover:bg-gray-100">
+                    <i class="fa-solid fa-chevron-right"></i>
                 </button>
             </div>
-            <div class="mt-2 text-center text-gray-500 font-medium" id="pallet-pagination-info">Page 1 / 2</div>
         </div>
 
         <!-- Page: WH Management -->
@@ -294,29 +293,32 @@
                     class="btn-press bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
-                <div class="text-xl font-bold text-purple-700">Warehouse Management</div>
+                <div class="text-2xl font-bold text-purple-700">Warehouse</div>
                 <div id="wh-status-summary"
                     class="text-sm font-medium text-gray-600 bg-white px-3 py-1 rounded-lg border border-gray-200">
                     Loading...
                 </div>
             </div>
 
-            <div class="flex-1 w-[95%] max-w-none flex items-center justify-between">
-                <button onclick="prevPage('wh')"
-                    class="btn-press w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center text-gray-500 hover:bg-gray-100">
-                    <i class="fa-solid fa-chevron-left text-2xl"></i>
-                </button>
-
-                <div id="wh-grid" class="flex-1 grid grid-cols-4 gap-6 px-6 h-[500px] overflow-y-auto content-start">
+            <div class="flex-1 w-[95%] max-w-none flex flex-col items-center">
+                <div id="wh-grid"
+                    class="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6 overflow-y-auto content-start w-full justify-center">
                     <!-- JS Generated Buttons -->
                 </div>
+            </div>
 
-                <button onclick="nextPage('wh')"
-                    class="btn-press w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center text-gray-500 hover:bg-gray-100">
-                    <i class="fa-solid fa-chevron-right text-2xl"></i>
+            <!-- Footer Pagination -->
+            <div class="w-[95%] max-w-none flex justify-center items-center space-x-6 mt-4 pb-2">
+                <button id="btn-wh-prev" onclick="prevPage('wh')"
+                    class="btn-press w-12 h-12 rounded-full bg-white shadow flex items-center justify-center text-gray-500 hover:bg-gray-100">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="text-lg text-gray-500 font-medium w-32 text-center" id="wh-pagination-info">Page 1 / 1</div>
+                <button id="btn-wh-next" onclick="nextPage('wh')"
+                    class="btn-press w-12 h-12 rounded-full bg-white shadow flex items-center justify-center text-gray-500 hover:bg-gray-100">
+                    <i class="fa-solid fa-chevron-right"></i>
                 </button>
             </div>
-            <div class="mt-2 text-center text-gray-500 font-medium" id="wh-pagination-info">Page 1 / 2</div>
         </div>
 
         <!-- Page: Queue -->
@@ -358,14 +360,14 @@
 
         <!-- Page: AMR Control -->
         <div id="page-amr" class="page hidden absolute inset-0 p-6 flex-col items-center">
-            <div class="w-full max-w-5xl flex justify-start mb-6">
+            <div class="w-full max-w-5xl flex justify-between items-center mb-6">
                 <button onclick="navigateTo('page-main')"
                     class="btn-press bg-white text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2 border border-gray-300 shadow">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
+                <div class="text-2xl font-bold text-gray-700">AMR Control Panel</div>
+                <div class="w-24"></div>
             </div>
-
-            <h2 class="text-3xl font-bold text-gray-700 mb-6">AMR Control Panel</h2>
 
             <!-- AMR Header -->
             <div
@@ -629,7 +631,7 @@
             if (pointNum === 10) hint = "ใส่ได้เฉพาะเลข 9";
             inputStation.placeholder = `Station (${hint})`;
 
-            updateMiniQueue();
+            // updateMiniQueue(); // Removed functionality
             // Removed navigateTo('page-point-detail') as this is now called during render
         }
 
@@ -660,6 +662,14 @@
                 return;
             }
 
+            // check duplicate
+            const newSource = `Point #${appState.currentPoint} (St.${stInput.value})`;
+            const exists = appState.queue.some(j => j.source === newSource && j.status !== 'Completed');
+            if (exists) {
+                showToast(`Station ${stInput.value} มีงานค้างอยู่ในคิวแล้ว`, "error");
+                return;
+            }
+
             // Add Job
             addJob('Point', `Point #${appState.currentPoint} (St.${stInput.value})`, itInput.value, '-');
 
@@ -667,7 +677,7 @@
             stInput.value = '';
             itInput.value = '';
             showToast("เพิ่มงานสำเร็จ!");
-            updateMiniQueue();
+            // updateMiniQueue(); // Removed functionality
         }
 
         // --- FG Logic ---
@@ -685,10 +695,10 @@
             document.getElementById('input-fg-item').value = '';
             document.getElementById('input-fg-amount').value = '';
             showToast("เพิ่มงาน FG สำเร็จ!");
-            updateMiniQueue();
+            // updateMiniQueue(); // Removed functionality
         }
 
-        function updateMiniQueue() {
+        /* function updateMiniQueue() {
             // Render logic for mini queue lists in Point & FG pages
             const q = appState.queue.slice(0, 3);
             const html = q.map(j => `
@@ -703,7 +713,7 @@
 
             document.getElementById('point-mini-queue').innerHTML = html;
             document.getElementById('fg-mini-queue').innerHTML = html;
-        }
+        } */
 
         function addJob(type, source, item, amount) {
             const newJob = {
@@ -743,7 +753,7 @@
             const grid = document.getElementById('pallet-grid');
             grid.innerHTML = '';
             // Responsive: 2 cols on small, 3 on md, 4 on lg
-            grid.className = `flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6 h-[500px] overflow-y-auto content-start justify-center`;
+            grid.className = `flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6 h-[500px] overflow-y-auto content-start justify-center w-full`;
 
             // Update Status
             const emptyCount = appState.pallets.filter(p => p.status === 'empty').length;
@@ -770,6 +780,17 @@
 
             const totalPages = Math.ceil(appState.pallets.length / CONFIG.palletPerPage);
             document.getElementById('pallet-pagination-info').innerText = `Page ${appState.pagination.pallet} / ${totalPages}`;
+
+            // Hide pagination if single page
+            const prevBtn = document.getElementById('btn-pallet-prev');
+            const nextBtn = document.getElementById('btn-pallet-next');
+            if (totalPages <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+            }
         }
 
         function togglePallet(id) {
@@ -788,7 +809,7 @@
             const grid = document.getElementById('wh-grid');
             grid.innerHTML = '';
             // Responsive: 2 cols on small, 3 on md, 4 on lg
-            grid.className = `flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6 h-[500px] overflow-y-auto content-start justify-center`;
+            grid.className = `flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6 h-[500px] overflow-y-auto content-start justify-center w-full`;
 
             // Update Status
             const emptyCount = appState.wh.filter(w => w.value === null).length;
@@ -815,6 +836,17 @@
 
             const totalPages = Math.ceil(appState.wh.length / CONFIG.whPerPage);
             document.getElementById('wh-pagination-info').innerText = `Page ${appState.pagination.wh} / ${totalPages}`;
+
+            // Hide pagination if single page
+            const prevBtn = document.getElementById('btn-wh-prev');
+            const nextBtn = document.getElementById('btn-wh-next');
+            if (totalPages <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+            }
         }
 
         function handleWHClick(id) {
@@ -889,12 +921,10 @@
             const cancelBtn = document.getElementById('q-detail-cancel-btn');
 
             cancelBtn.onclick = () => {
+                modal.classList.add('hidden'); // Close detail modal first
                 showConfirmModal("ต้องการลบงานนี้ใช่หรือไม่?", () => {
                     appState.queue = appState.queue.filter(x => x.id !== jid);
                     renderQueue();
-                    // close detail modal
-                    modal.classList.add('hidden');
-                    overlay.classList.add('hidden');
                     showToast("ลบงานเรียบร้อย");
                 });
             };
