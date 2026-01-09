@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMAP Map Processor & Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+        }
+        /* ซ่อน scrollbar ของ checkbox list */
+        .checkbox-list::-webkit-scrollbar {
+            display: none;
+        }
+        .checkbox-list {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        #map-canvas-container {
+            touch-action: none; /* ป้องกันการ pan ของเบราว์เซอร์บนมือถือ */
+        }
+        #map-canvas {
+            background-color: #f8fafc; /* bg-slate-50 */
+            border: 1px solid #e2e8f0; /* border-slate-200 */
+            border-radius: 0.5rem;
+        }
+        /* ซ่อนลูกศรของ input number */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-900 h-full flex flex-col md:flex-row">
+
+    <!-- ส่วนที่ 1: ตัวประมวลผลแผนที่ -->
+    <div class="w-full md:w-1/3 xl:w-1/4 h-1/2 md:h-full p-6 bg-white shadow-lg overflow-y-auto flex flex-col">
+        <h1 class="text-2xl font-bold text-blue-700 mb-6">ตัวประมวลผล .smap</h1>
+        
+        <!-- ขั้นตอนที่ 1: อัปโหลด -->
+        <div class="mb-4">
+            <h2 class="text-lg font-semibold text-slate-700 mb-2">ขั้นตอนที่ 1: อัปโหลดไฟล์ .smap</h2>
+            <input type="file" id="smap-uploader" accept=".smap" class="block w-full text-sm text-slate-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100
+            ">
+            <p id="smap-upload-status" class="text-sm text-slate-500 mt-2"></p>
+        </div>
+
+        <!-- ขั้นตอนที่ 2: เลือกจุด -->
+        <div class="mb-4 flex-1 flex flex-col min-h-[200px]">
+            <h2 class="text-lg font-semibold text-slate-700 mb-2">ขั้นตอนที่ 2: เลือกจุดที่ต้องการ</h2>
+            <div id="point-selector" class="checkbox-list flex-1 p-4 bg-slate-50 rounded-lg border border-slate-200 overflow-y-auto hidden">
+                <!-- ตัวเลือกแสดงทั้งหมด -->
+                <div class="mb-3 pb-2 border-b border-slate-200">
+                    <input type="checkbox" id="include-all-checkbox" class="h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500">
+                    <label for="include-all-checkbox" class="ml-2 font-bold text-orange-700 italic">แสดงทั้งหมด (ไม่ตัดจุดใดๆ ออก)</label>
+                </div>
+                
+                <div class="mb-3">
+                    <input type="checkbox" id="select-all" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="select-all" class="ml-2 font-semibold text-slate-600">เลือกทั้งหมด</label>
+                </div>
+                <div id="point-list" class="space-y-2">
+                    <!-- Checkboxes will be inserted here by JS -->
+                </div>
+            </div>
+            <p id="point-selector-placeholder" class="text-sm text-slate-500">กรุณาอัปโหลดไฟล์ .smap เพื่อแสดงรายการ...</p>
+        </div>
+
+        <!-- ขั้นตอนที่ 3: บันทึก -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold text-slate-700 mb-2">ขั้นตอนที่ 3: บันทึกไฟล์ .json</h2>
+            <label for="output-filename" class="text-sm font-medium text-slate-600">ชื่อไฟล์ใหม่ (เช่น process-map-1.5T.json)</label>
+            <input type="text" id="output-filename" placeholder="process-map-1.5T.json" class="w-full mt-1 p-2 border border-slate-300 rounded-lg bg-white">
+            <button id="process-and-save-btn" class="w-full mt-3 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200 disabled:opacity-50" disabled>
+                ประมวลผลและบันทึก
+            </button>
+        </div>
+        
+        <div class="border-t border-slate-200 pt-4">
+            <h3 class="text-md font-semibold text-slate-600">โฟลเดอร์สำหรับบันทึก</h3>
+            <p class="text-sm text-slate-500">ไฟล์ที่บันทึกจะถูกเก็บไว้ในโฟลเดอร์ `process_map` (หากใช้บนเซิร์ฟเวอร์) หรือดาวน์โหลดลงเครื่อง (หากรันบนเบราว์เซอร์)</p>
+        </div>
+    </div>
+
+    <!-- ส่วนที่ 2: ตัวแสดงแผนที่ -->
+    <div class="w-full md:w-2/3 xl:w-3/4 h-1/2 md:h-full p-6 flex flex-col">
+        <h1 class="text-2xl font-bold text-slate-800 mb-6">2. ตัวแสดงแผนที่ (โหลดจาก .json ที่ประมวลผลแล้ว)</h1>
+        
+        <div class="mb-4 flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
+                <label class="text-lg font-semibold text-slate-700 mb-2">เลือกไฟล์ .json ที่ประมวลผลแล้ว</label>
+                <input type="file" id="process-map-uploader" accept=".json" class="block w-full text-sm text-slate-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-green-50 file:text-green-700
+                    hover:file:bg-green-100
+                ">
+            </div>
+            <div class="self-end">
+                <button id="display-map-btn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition duration-200 disabled:opacity-50" disabled>
+                    แสดงแผนที่
+                </button>
+            </div>
+        </div>
+        
+        <!-- ส่วนควบคุมการหมุนและกลับด้าน -->
+        <div class="mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <label for="map-rotation" class="block text-sm font-medium text-slate-700">กำหนดองศา (Rotation): <span id="map-rotation-value" class="font-bold text-blue-600">0.00°</span></label>
+            <div class="flex gap-4 items-center mt-2">
+                <input type="range" id="map-rotation" min="-180" max="180" value="0" step="0.01" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer flex-1">
+                <input type="number" id="map-rotation-input" min="-180" max="180" step="0.01" value="0" class="w-24 p-1.5 border border-slate-300 rounded-lg text-right text-sm">
+            </div>
+            
+            <div class="mt-4 flex gap-6">
+                <div>
+                    <input type="checkbox" id="map-flip-x" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="map-flip-x" class="ml-2 text-sm font-medium text-slate-700">กลับด้าน (ซ้าย-ขวา)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="map-flip-y" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="map-flip-y" class="ml-2 text-sm font-medium text-slate-700">กลับด้าน (บน-ล่าง)</label>
+                </div>
+            </div>
+            
+            <!-- ปุ่มบันทึกการตั้งค่า -->
+            <div class="mt-4 border-t pt-4">
+                <button id="save-view-btn" class="bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 disabled:opacity-50 text-sm" disabled>
+                    บันทึกการตั้งค่ามุมมอง (.json)
+                </button>
+            </div>
+        </div>
+        
+        <!-- Canvas Wrapper for panning/zooming -->
+        <div id="map-canvas-container" class="flex-1 bg-white rounded-lg shadow-inner overflow-hidden border border-slate-200">
+            <canvas id="map-canvas" class="w-full h-full"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- STATE VARIABLES ---
+            let fullSmapData = null; // เก็บข้อมูล .smap ที่อ่านได้
+            let currentProcessedMapData = null; // เก็บข้อมูล .json ที่ประมวลผลแล้ว
+            let currentJsonFilename = 'processed-map.json'; 
+            
+            // สถานะของ Canvas สำหรับ Pan/Zoom/Rotate/Flip
+            let canvasState = {
+                scale: 1,
+                offsetX: 0,
+                offsetY: 0,
+                rotation: 0, // องศาการหมุน (radians)
+                isFlippedX: false, // สถานะกลับด้าน X
+                isFlippedY: false, // สถานะกลับด้าน Y
+                hoveredPoint: null, // จุดที่เมาส์ชี้
+                isDragging: false,
+                lastDragX: 0,
+                lastDragY: 0,
+                mapBounds: null // ขอบเขตของแผนที่
+            };
+
+            // --- SECTION 1: SMAP PROCESSOR ---
+
+            const smapUploader = document.getElementById('smap-uploader');
+            const smapUploadStatus = document.getElementById('smap-upload-status');
+            const pointSelector = document.getElementById('point-selector');
+            const pointSelectorPlaceholder = document.getElementById('point-selector-placeholder');
+            const pointList = document.getElementById('point-list');
+            const selectAllCheckbox = document.getElementById('select-all');
+            const includeAllCheckbox = document.getElementById('include-all-checkbox');
+            const outputFilenameInput = document.getElementById('output-filename');
+            const processBtn = document.getElementById('process-and-save-btn');
+
+            smapUploader.addEventListener('change', handleSmapUpload);
+            selectAllCheckbox.addEventListener('change', toggleSelectAll);
+            processBtn.addEventListener('click', processAndSaveMap);
+
+            // จัดการเมื่อเลือก 'แสดงทั้งหมด'
+            includeAllCheckbox.addEventListener('change', () => {
+                const checkboxes = document.querySelectorAll('.point-checkbox');
+                if (includeAllCheckbox.checked) {
+                    checkboxes.forEach(cb => {
+                        cb.disabled = true;
+                        cb.closest('div').style.opacity = '0.5';
+                    });
+                    selectAllCheckbox.disabled = true;
+                } else {
+                    checkboxes.forEach(cb => {
+                        cb.disabled = false;
+                        cb.closest('div').style.opacity = '1';
+                    });
+                    selectAllCheckbox.disabled = false;
+                }
+            });
+
+            /**
+             * อ่านไฟล์ .smap ที่อัปโหลด
+             */
+            function handleSmapUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                smapUploadStatus.textContent = `กำลังอ่านไฟล์ ${file.name}...`;
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    try {
+                        fullSmapData = JSON.parse(e.target.result);
+                        smapUploadStatus.textContent = `อ่านไฟล์ ${file.name} สำเร็จ`;
+                        populatePointSelector();
+                        processBtn.disabled = false;
+                        if (!outputFilenameInput.value) {
+                             outputFilenameInput.value = file.name.replace('.smap', '.json');
+                        }
+                    } catch (err) {
+                        smapUploadStatus.textContent = `ผิดพลาด: ไม่สามารถอ่านไฟล์ JSON ได้ (${err.message})`;
+                        fullSmapData = null;
+                        processBtn.disabled = true;
+                    }
+                };
+
+                reader.onerror = () => {
+                    smapUploadStatus.textContent = `เกิดข้อผิดพลาดในการอ่านไฟล์`;
+                    fullSmapData = null;
+                    processBtn.disabled = true;
+                };
+
+                reader.readAsText(file);
+            }
+
+            /**
+             * แสดงรายการ ActionPoint และ ChargePoint ให้เลือก
+             */
+            function populatePointSelector() {
+                if (!fullSmapData || !fullSmapData.advancedPointList) {
+                    pointSelector.classList.add('hidden');
+                    pointSelectorPlaceholder.classList.remove('hidden');
+                    return;
+                }
+
+                const points = fullSmapData.advancedPointList
+                    .filter(p => p.className === 'ActionPoint' || p.className === 'ChargePoint')
+                    .sort((a, b) => naturalSort(a.instanceName, b.instanceName));
+
+                pointList.innerHTML = ''; // Clear list
+                points.forEach(point => {
+                    const div = document.createElement('div');
+                    const id = `point-${point.instanceName}`;
+                    div.innerHTML = `
+                        <input type="checkbox" id="${id}" name="mapPoint" value="${point.instanceName}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 point-checkbox">
+                        <label for="${id}" class="ml-2 text-slate-700 text-sm">${point.instanceName} (${point.className})</label>
+                    `;
+                    pointList.appendChild(div);
+                });
+
+                pointSelector.classList.remove('hidden');
+                pointSelectorPlaceholder.classList.add('hidden');
+            }
+
+            /**
+             * ฟังก์ชันสำหรับเรียงลำดับแบบ Natural Sort
+             */
+            function naturalSort(a, b) {
+                const re = /(^-?[0-9]+(\.?[0-9]*)[df]?e?[0-9]?$|^0x[0-9a-f]+$|[0-9]+)/gi;
+                const sre = /(^[ ]*|[ ]*$)/g;
+                const normalize = (s) => s.toString().toLowerCase().replace(sre, '') || '';
+                
+                const x = normalize(a);
+                const y = normalize(b);
+                
+                const xN = x.replace(re, '\0$1\0').replace(/\0$/, '').replace(/^\0/, '').split('\0');
+                const yN = y.replace(re, '\0$1\0').replace(/\0$/, '').replace(/^\0/, '').split('\0');
+                
+                for (let cA, cB, i = 0, L = Math.max(xN.length, yN.length); i < L; i++) {
+                    cA = parseFloat(xN[i]) || xN[i];
+                    cB = parseFloat(yN[i]) || yN[i];
+                    
+                    if (isNaN(cA) !== isNaN(cB)) return (isNaN(cA) ? 1 : -1);
+                    if (typeof cA !== typeof cB) return (typeof cA < typeof cB ? -1 : 1);
+                    if (cA < cB) return -1;
+                    if (cA > cB) return 1;
+                }
+                return 0;
+            }
+
+            /**
+             * เลือก/ไม่เลือก Checkbox ทั้งหมด
+             */
+            function toggleSelectAll() {
+                const checkboxes = document.querySelectorAll('.point-checkbox');
+                checkboxes.forEach(cb => {
+                    cb.checked = selectAllCheckbox.checked;
+                });
+            }
+
+            /**
+             * ประมวลผลและบันทึกแผนที่
+             */
+            function processAndSaveMap() {
+                if (!fullSmapData) {
+                    alert('กรุณาอัปโหลดไฟล์ .smap ก่อน');
+                    return;
+                }
+
+                const filename = outputFilenameInput.value || 'process-map.json';
+                let finalPoints = [];
+                let finalCurves = [];
+
+                if (includeAllCheckbox.checked) {
+                    finalPoints = fullSmapData.advancedPointList;
+                    finalCurves = fullSmapData.advancedCurveList;
+                } else {
+                    const selectedPoints = Array.from(document.querySelectorAll('.point-checkbox:checked')).map(cb => cb.value);
+                    if (selectedPoints.length === 0) {
+                        alert('กรุณาเลือกจุดที่ต้องการอย่างน้อย 1 จุด');
+                        return;
+                    }
+
+                    const pathGraph = new Map();
+                    const allPointsMap = new Map(fullSmapData.advancedPointList.map(p => [p.instanceName, p]));
+
+                    fullSmapData.advancedCurveList.forEach(curve => {
+                        const start = curve.startPos.instanceName;
+                        const end = curve.endPos.instanceName;
+                        if (!pathGraph.has(start)) pathGraph.set(start, []);
+                        if (!pathGraph.has(end)) pathGraph.set(end, []);
+                        if (allPointsMap.has(start) && allPointsMap.has(end)) {
+                            pathGraph.get(start).push(end);
+                            pathGraph.get(end).push(start); 
+                        }
+                    });
+
+                    const finalPointsSet = new Set(selectedPoints);
+                    const finalCurvesSet = new Set();
+                    
+                    for (let i = 0; i < selectedPoints.length; i++) {
+                        for (let j = i + 1; j < selectedPoints.length; j++) {
+                            const path = findPath(selectedPoints[i], selectedPoints[j], pathGraph);
+                            if (path) {
+                                path.forEach(pointName => finalPointsSet.add(pointName));
+                                for (let k = 0; k < path.length - 1; k++) {
+                                    const key1 = `${path[k]}-${path[k+1]}`;
+                                    const key2 = `${path[k+1]}-${path[k]}`;
+                                    if (!finalCurvesSet.has(key1) && !finalCurvesSet.has(key2)) {
+                                        finalCurvesSet.add(key1);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    finalPoints = Array.from(finalPointsSet).map(name => allPointsMap.get(name)).filter(p => p);
+                    finalCurves = fullSmapData.advancedCurveList.filter(curve => {
+                        const key1 = `${curve.startPos.instanceName}-${curve.endPos.instanceName}`;
+                        const key2 = `${curve.endPos.instanceName}-${curve.startPos.instanceName}`;
+                        return finalCurvesSet.has(key1) || finalCurvesSet.has(key2);
+                    });
+                }
+                
+                const processedMap = {
+                    header: {
+                        mapName: fullSmapData.header.mapName,
+                        processedFrom: smapUploader.files[0].name
+                    },
+                    advancedPointList: finalPoints,
+                    advancedCurveList: finalCurves
+                };
+                saveDataToFile(processedMap, filename);
+            }
+            
+            function findPath(startNode, endNode, graph) {
+                const queue = [[startNode]];
+                const visited = new Set([startNode]);
+                while (queue.length > 0) {
+                    const path = queue.shift();
+                    const node = path[path.length - 1];
+                    if (node === endNode) return path;
+                    const neighbors = graph.get(node) || [];
+                    for (const neighbor of neighbors) {
+                        if (!visited.has(neighbor)) {
+                            visited.add(neighbor);
+                            queue.push([...path, neighbor]);
+                        }
+                    }
+                }
+                return null;
+            }
+
+            function saveDataToFile(data, filename) {
+                try {
+                    const jsonString = JSON.stringify(data, null, 2);
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    alert(`บันทึกไฟล์ ${filename} สำเร็จ`);
+                } catch (err) {
+                    alert(`เกิดข้อผิดพลาดในการบันทึกไฟล์: ${err.message}`);
+                }
+            }
+
+            // --- SECTION 2: MAP VIEWER ---
+
+            const processMapUploader = document.getElementById('process-map-uploader');
+            const displayMapBtn = document.getElementById('display-map-btn');
+            const rotationSlider = document.getElementById('map-rotation');
+            const rotationInput = document.getElementById('map-rotation-input');
+            const rotationValue = document.getElementById('map-rotation-value');
+            const flipCheckboxX = document.getElementById('map-flip-x');
+            const flipCheckboxY = document.getElementById('map-flip-y');
+            const saveViewBtn = document.getElementById('save-view-btn');
+
+            const canvasContainer = document.getElementById('map-canvas-container');
+            const canvas = document.getElementById('map-canvas');
+            const ctx = canvas.getContext('2d');
+
+            processMapUploader.addEventListener('change', handleProcessMapUpload);
+            displayMapBtn.addEventListener('click', () => drawMap(true));
+            
+            function updateRotation(value) {
+                const degrees = parseFloat(value) || 0;
+                const preciseDegrees = parseFloat(degrees.toFixed(2));
+                rotationValue.textContent = `${preciseDegrees.toFixed(2)}°`;
+                rotationSlider.value = preciseDegrees;
+                rotationInput.value = preciseDegrees.toFixed(2);
+                canvasState.rotation = preciseDegrees * (Math.PI / 180);
+                drawMap();
+            }
+
+            rotationSlider.addEventListener('input', (e) => updateRotation(e.target.value));
+            rotationInput.addEventListener('input', (e) => updateRotation(e.target.value));
+            flipCheckboxX.addEventListener('change', (e) => { canvasState.isFlippedX = e.target.checked; drawMap(); });
+            flipCheckboxY.addEventListener('change', (e) => { canvasState.isFlippedY = e.target.checked; drawMap(); });
+            
+            saveViewBtn.addEventListener('click', () => {
+                if (!currentProcessedMapData) return;
+                if (!currentProcessedMapData.header) currentProcessedMapData.header = {};
+                if (!currentProcessedMapData.header.viewSettings) currentProcessedMapData.header.viewSettings = {};
+                currentProcessedMapData.header.viewSettings.rotation = parseFloat(rotationInput.value) || 0;
+                currentProcessedMapData.header.viewSettings.isFlippedX = flipCheckboxX.checked;
+                currentProcessedMapData.header.viewSettings.isFlippedY = flipCheckboxY.checked;
+                saveDataToFile(currentProcessedMapData, currentJsonFilename);
+            });
+
+            canvasContainer.addEventListener('mousedown', onMouseDown);
+            canvasContainer.addEventListener('mousemove', onMouseMove);
+            canvasContainer.addEventListener('mouseup', onMouseUp);
+            canvasContainer.addEventListener('mouseleave', onMouseUp);
+            canvasContainer.addEventListener('wheel', onWheel);
+
+            canvasContainer.addEventListener('touchstart', onTouchStart);
+            canvasContainer.addEventListener('touchmove', onTouchMove);
+            canvasContainer.addEventListener('touchend', onTouchEnd);
+
+            let lastTouchDistance = null;
+
+            function handleProcessMapUpload(event) {
+                const file = event.target.files[0];
+                if (!file) {
+                    displayMapBtn.disabled = true;
+                    saveViewBtn.disabled = true;
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        currentProcessedMapData = JSON.parse(e.target.result);
+                        currentJsonFilename = file.name;
+                        displayMapBtn.disabled = false;
+                        saveViewBtn.disabled = false;
+                        canvasState.hoveredPoint = null;
+                        const settings = currentProcessedMapData.header?.viewSettings;
+                        if (settings) {
+                            const rotation = parseFloat(settings.rotation) || 0;
+                            updateRotation(rotation);
+                            flipCheckboxX.checked = canvasState.isFlippedX = settings.isFlippedX || false;
+                            flipCheckboxY.checked = canvasState.isFlippedY = settings.isFlippedY || false;
+                        } else {
+                            updateRotation(0);
+                            flipCheckboxX.checked = canvasState.isFlippedX = false;
+                            flipCheckboxY.checked = canvasState.isFlippedY = false;
+                        }
+                    } catch (err) {
+                        alert(`ผิดพลาด: ${err.message}`);
+                    }
+                };
+                reader.readAsText(file);
+            }
+            
+            function drawMap(fit = false) {
+                if (!currentProcessedMapData) return;
+                canvas.width = canvasContainer.clientWidth;
+                canvas.height = canvasContainer.clientHeight;
+                if (fit || !canvasState.mapBounds) {
+                    canvasState.mapBounds = findMapBounds(currentProcessedMapData.advancedPointList);
+                    fitMapToCanvas();
+                }
+                const { scale, offsetX, offsetY, rotation, isFlippedX, isFlippedY, mapBounds } = canvasState;
+                if (!mapBounds) return;
+                ctx.save();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.translate(offsetX, offsetY);
+                ctx.scale(scale, scale);
+                const mapCenterX = (mapBounds.minX + mapBounds.maxX) / 2;
+                const mapCenterY = (mapBounds.minY + mapBounds.maxY) / 2;
+                ctx.translate(mapCenterX, mapCenterY);
+                ctx.rotate(rotation);
+                ctx.scale(isFlippedX ? -1 : 1, isFlippedY ? -1 : 1);
+                ctx.translate(-mapCenterX, -mapCenterY);
+                const processedPointMap = new Map(currentProcessedMapData.advancedPointList.map(p => [p.instanceName, p]));
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 1 / scale;
+                currentProcessedMapData.advancedCurveList.forEach(curve => {
+                    const startPoint = processedPointMap.get(curve.startPos.instanceName);
+                    const endPoint = processedPointMap.get(curve.endPos.instanceName);
+                    if (startPoint && endPoint) {
+                        ctx.beginPath();
+                        ctx.moveTo(startPoint.pos.x, startPoint.pos.y);
+                        ctx.lineTo(endPoint.pos.x, endPoint.pos.y);
+                        ctx.stroke();
+                    }
+                });
+                currentProcessedMapData.advancedPointList.forEach(point => {
+                    let color = '#94a3b8';
+                    let radius = 3 / scale;
+                    switch (point.className) {
+                        case 'ActionPoint': color = '#3b82f6'; radius = 5 / scale; break;
+                        case 'ChargePoint': color = '#f59e0b'; radius = 5 / scale; break;
+                        case 'ParkPoint': color = '#f97316'; radius = 5 / scale; break;
+                        case 'LocationMark': color = '#1f2937'; break;
+                    }
+                    ctx.beginPath();
+                    ctx.fillStyle = color;
+                    ctx.arc(point.pos.x, point.pos.y, radius, 0, 2 * Math.PI);
+                    ctx.fill();
+                    const isHovered = (point === canvasState.hoveredPoint);
+                    const isImportant = (point.className === 'ActionPoint' || point.className === 'ChargePoint');
+                    if (isImportant || isHovered) {
+                        ctx.font = `${14 / scale}px Arial`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.save();
+                        ctx.translate(point.pos.x, point.pos.y);
+                        ctx.scale(isFlippedX ? -1 : 1, isFlippedY ? -1 : 1);
+                        ctx.rotate(-rotation);
+                        ctx.fillStyle = '#334155';
+                        const yOffset = radius + (8 / scale);
+                        ctx.fillText(point.instanceName, 0, -yOffset);
+                        ctx.restore();
+                    }
+                });
+                ctx.restore();
+            }
+
+            function findMapBounds(points) {
+                if (!points || points.length === 0) return { minX: -10, minY: -10, maxX: 10, maxY: 10 };
+                let minX = points[0].pos.x, minY = points[0].pos.y, maxX = points[0].pos.x, maxY = points[0].pos.y;
+                points.forEach(p => {
+                    if (p.pos.x < minX) minX = p.pos.x; if (p.pos.x > maxX) maxX = p.pos.x;
+                    if (p.pos.y < minY) minY = p.pos.y; if (p.pos.y > maxY) maxY = p.pos.y;
+                });
+                const px = (maxX - minX) * 0.1 || 10, py = (maxY - minY) * 0.1 || 10;
+                return { minX: minX - px, minY: minY - py, maxX: maxX + px, maxY: maxY + py };
+            }
+
+            function fitMapToCanvas() {
+                const { mapBounds } = canvasState;
+                if (!mapBounds) return;
+                const mapWidth = mapBounds.maxX - mapBounds.minX, mapHeight = mapBounds.maxY - mapBounds.minY;
+                canvasState.scale = Math.min(canvas.width / mapWidth, canvas.height / mapHeight);
+                const cx = (mapBounds.minX + mapBounds.maxX) / 2, cy = (mapBounds.minY + mapBounds.maxY) / 2;
+                canvasState.offsetX = (canvas.width / 2) - (cx * canvasState.scale);
+                canvasState.offsetY = (canvas.height / 2) - (cy * canvasState.scale);
+            }
+
+            function onMouseDown(e) { if (e.button !== 0) return; canvasState.isDragging = true; canvasState.lastDragX = e.clientX; canvasState.lastDragY = e.clientY; canvasContainer.style.cursor = 'grabbing'; }
+            function onMouseMove(e) {
+                const worldPos = screenToWorld(e.clientX, e.clientY);
+                canvasState.hoveredPoint = findPointAt(worldPos.x, worldPos.y);
+                if (!canvasState.isDragging) { canvasContainer.style.cursor = canvasState.hoveredPoint ? 'pointer' : 'grab'; drawMap(); return; }
+                canvasState.offsetX += e.clientX - canvasState.lastDragX; canvasState.offsetY += e.clientY - canvasState.lastDragY;
+                canvasState.lastDragX = e.clientX; canvasState.lastDragY = e.clientY; drawMap();
+            }
+            function onMouseUp() { canvasState.isDragging = false; canvasContainer.style.cursor = canvasState.hoveredPoint ? 'pointer' : 'grab'; }
+            function onWheel(e) {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+                const wp = screenToWorld(e.clientX, e.clientY);
+                canvasState.scale *= (e.deltaY < 0 ? 1.1 : 0.9);
+                const nwp = screenToWorld(e.clientX, e.clientY);
+                canvasState.offsetX += (nwp.x - wp.x) * canvasState.scale; canvasState.offsetY += (nwp.y - wp.y) * canvasState.scale;
+                drawMap();
+            }
+            
+            function onTouchStart(e) {
+                if (e.touches.length === 1) { canvasState.isDragging = true; canvasState.lastDragX = e.touches[0].clientX; canvasState.lastDragY = e.touches[0].clientY; lastTouchDistance = null; }
+                else if (e.touches.length === 2) { canvasState.isDragging = false; lastTouchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+            }
+            function onTouchMove(e) {
+                e.preventDefault();
+                if (e.touches.length === 1 && canvasState.isDragging) {
+                    canvasState.offsetX += e.touches[0].clientX - canvasState.lastDragX; canvasState.offsetY += e.touches[0].clientY - canvasState.lastDragY;
+                    canvasState.lastDragX = e.touches[0].clientX; canvasState.lastDragY = e.touches[0].clientY; drawMap();
+                } else if (e.touches.length === 2) {
+                    const nd = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                    if (lastTouchDistance) {
+                        const tc = { x: (e.touches[0].clientX + e.touches[1].clientX)/2, y: (e.touches[0].clientY + e.touches[1].clientY)/2 };
+                        const wp = screenToWorld(tc.x, tc.y);
+                        canvasState.scale *= (nd / lastTouchDistance);
+                        const nwp = screenToWorld(tc.x, tc.y);
+                        canvasState.offsetX += (nwp.x - wp.x) * canvasState.scale; canvasState.offsetY += (nwp.y - wp.y) * canvasState.scale;
+                        drawMap();
+                    }
+                    lastTouchDistance = nd;
+                }
+            }
+            function onTouchEnd() { canvasState.isDragging = false; lastTouchDistance = null; }
+
+            function screenToWorld(sx, sy) {
+                const rect = canvas.getBoundingClientRect();
+                const { scale, offsetX, offsetY, rotation, isFlippedX, isFlippedY, mapBounds } = canvasState;
+                if (!mapBounds) return { x: 0, y: 0 };
+                const cx = (mapBounds.minX + mapBounds.maxX) / 2, cy = (mapBounds.minY + mapBounds.maxY) / 2;
+                let x = (sx - rect.left - offsetX) / scale - cx, y = (sy - rect.top - offsetY) / scale - cy;
+                let x3 = x * (isFlippedX ? -1 : 1), y3 = y * (isFlippedY ? -1 : 1);
+                const cn = Math.cos(-rotation), sn = Math.sin(-rotation);
+                return { x: (x3 * cn - y3 * sn) + cx, y: (x3 * sn + y3 * cn) + cy };
+            }
+
+            function findPointAt(wx, wy) {
+                if (!currentProcessedMapData) return null;
+                const cr = 10 / canvasState.scale; 
+                for (let i = currentProcessedMapData.advancedPointList.length - 1; i >= 0; i--) {
+                    const p = currentProcessedMapData.advancedPointList[i];
+                    if (Math.hypot(wx - p.pos.x, wy - p.pos.y) < cr) return p;
+                }
+                return null;
+            }
+        });
+    </script>
+</body>
+</html>

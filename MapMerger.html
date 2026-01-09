@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Merger - จัดการเลเยอร์และชื่ออ้างอิง AMR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', 'Noto Sans Thai', sans-serif; }
+        canvas { background-color: #f8fafc; cursor: grab; }
+        canvas:active { cursor: grabbing; }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        #coord-hud { pointer-events: none; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body class="bg-slate-100 h-full flex flex-col overflow-hidden">
+
+    <!-- Header & Upload Section -->
+    <header class="bg-white shadow-md p-4 z-20">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-lg text-white shadow-lg shadow-blue-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A2 2 0 013 15.483V4a2 2 0 012-2h11a2 2 0 012 2v10.517a2 2 0 01-1.553 1.943L11 19.5V22l-2-2zm0 0l2-2v2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-800 leading-tight">Map Merger</h1>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">AMR Layer & Alias Management</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="flex flex-col items-end mr-2">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">เลือกไฟล์ Map หรือ Project</span>
+                    <input type="file" id="multi-uploader" accept=".json" multiple class="block text-sm text-slate-500
+                        file:mr-4 file:py-1.5 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-xs file:font-bold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100
+                    ">
+                </div>
+                <div class="h-10 w-[1px] bg-slate-200 mx-1"></div>
+                <button id="save-project-btn" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition flex items-center gap-2 shadow-lg shadow-blue-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    บันทึกโครงการ
+                </button>
+                <button id="clear-all-btn" class="text-xs text-red-500 hover:text-red-700 font-bold uppercase p-2">ล้างทั้งหมด</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 relative overflow-hidden flex flex-col">
+        
+        <div id="canvas-container" class="flex-1 relative overflow-hidden bg-slate-200 shadow-inner">
+            <canvas id="merger-canvas" class="w-full h-full"></canvas>
+            
+            <!-- Instructions Overlay -->
+            <div id="instructions" class="absolute top-4 left-4 bg-white/80 backdrop-blur p-3 rounded-lg text-xs text-slate-600 pointer-events-none border border-slate-200 shadow-sm">
+                <ul class="space-y-1">
+                    <li>🖱️ <strong>ลากแมพ:</strong> คลิกค้างที่สีนั้นเพื่อขยับตำแหน่ง</li>
+                    <li>🖱️ <strong>ซูม/แพนภาพรวม:</strong> Scroll Wheel / คลิกขวา</li>
+                    <li>📍 <strong>พิกัด:</strong> ดูพิกัด X, Y แยกตาม Alias ที่กำหนด</li>
+                </ul>
+            </div>
+
+            <!-- Coordinate HUD Display -->
+            <div id="coord-hud" class="absolute bottom-4 left-4 bg-white/90 backdrop-blur p-4 rounded-xl border border-slate-300 shadow-xl min-w-[260px] max-h-[40vh] overflow-y-auto hidden">
+                <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-2 border-b pb-1">เปรียบเทียบพิกัดแยกตาม Alias</h4>
+                <div id="coord-list" class="space-y-2">
+                    <!-- รายการพิกัดจะแสดงที่นี่ -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Controls (Contextual) -->
+        <div id="controls-panel" class="bg-white border-t border-slate-300 p-4 transition-transform translate-y-full min-h-[180px] flex items-center shadow-lg z-30 overflow-x-auto">
+            <div class="max-w-7xl mx-auto w-full flex flex-col gap-4">
+                
+                <div class="flex items-center justify-between border-b pb-3">
+                    <div class="flex items-center gap-4">
+                        <div id="active-map-color" class="w-10 h-10 rounded-lg border shadow-sm flex-shrink-0"></div>
+                        <div>
+                            <h3 id="active-map-name" class="font-bold text-slate-800 truncate text-sm max-w-[200px]">ชื่อไฟล์</h3>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">กำลังตั้งค่าแผนที่ชั้นนี้</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Alias Input -->
+                    <div class="flex items-center gap-3 bg-blue-50 p-2 rounded-xl border border-blue-100">
+                        <label class="text-xs font-bold text-blue-700 uppercase">ชื่ออ้างอิง (Alias):</label>
+                        <input type="text" id="local-alias-input" placeholder="เช่น 1.5T" class="w-32 p-1.5 border border-blue-200 rounded-lg text-sm font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <p class="text-[10px] text-blue-500 italic max-w-[120px]">ใช้เรียกผ่านโปรแกรม</p>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button id="reset-map-btn" class="px-4 py-2 text-xs font-bold border border-slate-300 rounded-lg hover:bg-slate-50 transition">รีเซ็ต</button>
+                        <button id="remove-map-btn" class="px-4 py-2 text-xs font-bold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition">ลบออก</button>
+                    </div>
+                </div>
+
+                <!-- Transform Controls -->
+                <div class="flex flex-wrap gap-8 items-end">
+                    <!-- Zoom -->
+                    <div class="flex-1 min-w-[150px]">
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-700 uppercase italic">มาตราส่วน (Scale)</label>
+                            <span id="local-scale-value" class="text-xs font-bold text-blue-600">100%</span>
+                        </div>
+                        <input type="range" id="local-scale-slider" min="0.1" max="5" step="0.01" value="1" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- Rotation -->
+                    <div class="flex-1 min-w-[200px]">
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-700 uppercase italic">การหมุน (Rotation)</label>
+                            <span id="local-rotation-value" class="text-xs font-bold text-blue-600">0.00°</span>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <input type="range" id="local-rotation-slider" min="-180" max="180" step="0.01" value="0" class="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <input type="number" id="local-rotation-input" min="-180" max="180" step="0.01" value="0" class="w-16 p-1 border border-slate-300 rounded text-right text-xs">
+                        </div>
+                    </div>
+
+                    <!-- Flip -->
+                    <div class="flex gap-6 items-center pb-1">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" id="local-flip-x" class="h-4 w-4 rounded border-gray-300 text-blue-600">
+                            <span class="text-xs font-bold text-slate-600 group-hover:text-blue-600 transition">กลับด้านซ้าย-ขวา</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" id="local-flip-y" class="h-4 w-4 rounded border-gray-300 text-blue-600">
+                            <span class="text-xs font-bold text-slate-600 group-hover:text-blue-600 transition">กลับด้านบน-ล่าง</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('merger-canvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('canvas-container');
+            const multiUploader = document.getElementById('multi-uploader');
+            const clearAllBtn = document.getElementById('clear-all-btn');
+            const saveProjectBtn = document.getElementById('save-project-btn');
+            
+            const coordHud = document.getElementById('coord-hud');
+            const coordList = document.getElementById('coord-list');
+
+            const controlsPanel = document.getElementById('controls-panel');
+            const activeMapName = document.getElementById('active-map-name');
+            const activeMapColorBox = document.getElementById('active-map-color');
+            const localAliasInput = document.getElementById('local-alias-input');
+            const localScaleSlider = document.getElementById('local-scale-slider');
+            const localScaleValue = document.getElementById('local-scale-value');
+            const localRotationSlider = document.getElementById('local-rotation-slider');
+            const localRotationInput = document.getElementById('local-rotation-input');
+            const localRotationValue = document.getElementById('local-rotation-value');
+            const localFlipX = document.getElementById('local-flip-x');
+            const localFlipY = document.getElementById('local-flip-y');
+            const resetMapBtn = document.getElementById('reset-map-btn');
+            const removeMapBtn = document.getElementById('remove-map-btn');
+
+            // --- APP STATE ---
+            let loadedMaps = []; 
+            let activeMapId = null;
+            
+            let viewState = {
+                scale: 1,
+                offsetX: 0,
+                offsetY: 0,
+                isPanning: false,
+                isDraggingMap: false,
+                lastX: 0,
+                lastY: 0
+            };
+
+            const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#1e293b', '#64748b'];
+            let colorIndex = 0;
+
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            function resizeCanvas() {
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                draw();
+            }
+
+            // --- FILE HANDLING ---
+            multiUploader.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const data = JSON.parse(event.target.result);
+                            
+                            // (แก้ไข) ตรวจสอบว่าเป็นไฟล์โครงการหรือไม่
+                            if (data.type === "map_merger_project") {
+                                importProject(data);
+                            } else {
+                                addMap(file.name, data);
+                            }
+                        } catch (err) {
+                            console.error("Error reading file:", file.name, err);
+                        }
+                    };
+                    reader.readAsText(file);
+                });
+                multiUploader.value = '';
+            });
+
+            clearAllBtn.addEventListener('click', () => {
+                if (loadedMaps.length > 0 && !confirm("คุณต้องการล้างแผนที่ทั้งหมดหรือไม่?")) return;
+                loadedMaps = [];
+                activeMapId = null;
+                colorIndex = 0;
+                updatePanel();
+                draw();
+            });
+
+            // บันทึกโครงการ
+            saveProjectBtn.addEventListener('click', () => {
+                if (loadedMaps.length === 0) {
+                    alert("กรุณาเพิ่มแมพอย่างน้อย 1 แมพก่อนบันทึก");
+                    return;
+                }
+
+                const projectData = {
+                    type: "map_merger_project",
+                    version: "1.1",
+                    timestamp: new Date().toISOString(),
+                    layers: loadedMaps.map(m => ({
+                        alias: m.alias || "",
+                        originalName: m.name,
+                        color: m.color,
+                        transform: {
+                            offsetX: m.x,
+                            offsetY: m.y,
+                            rotation: m.rotation,
+                            scale: m.localScale,
+                            flipX: m.isFlippedX,
+                            flipY: m.isFlippedY
+                        },
+                        mapBounds: m.mapBounds,
+                        data: {
+                            points: m.points,
+                            curves: m.curves
+                        }
+                    }))
+                };
+
+                const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `project-${new Date().getTime()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            /**
+             * (เพิ่ม) ฟังก์ชันสำหรับนำเข้าโครงการ
+             */
+            function importProject(projectData) {
+                if (loadedMaps.length > 0 && !confirm("พบไฟล์โครงการ คุณต้องการแทนที่แผนที่ปัจจุบันด้วยโครงการที่โหลดมาใช่หรือไม่?")) {
+                    return;
+                }
+
+                // ล้างค่าเก่า
+                loadedMaps = [];
+                
+                projectData.layers.forEach(layer => {
+                    const mapId = Date.now() + Math.random();
+                    const newMap = {
+                        id: mapId,
+                        name: layer.originalName,
+                        alias: layer.alias,
+                        points: layer.data.points,
+                        curves: layer.data.curves,
+                        x: layer.transform.offsetX,
+                        y: layer.transform.offsetY,
+                        rotation: layer.transform.rotation,
+                        localScale: layer.transform.scale,
+                        isFlippedX: layer.transform.flipX,
+                        isFlippedY: layer.transform.flipY,
+                        color: layer.color,
+                        mapBounds: layer.mapBounds
+                    };
+                    loadedMaps.push(newMap);
+                    
+                    // ปรับ colorIndex ให้ไม่ซ้ำกับสีในโปรเจกต์เดิม (ถ้าเป็นไปได้)
+                    const colorPos = colors.indexOf(layer.color);
+                    if (colorPos !== -1) colorIndex = Math.max(colorIndex, colorPos + 1);
+                });
+
+                activeMapId = loadedMaps.length > 0 ? loadedMaps[0].id : null;
+                updatePanel();
+                draw();
+            }
+
+            function addMap(name, data) {
+                const mapId = Date.now() + Math.random();
+                const color = colors[colorIndex % colors.length];
+                colorIndex++;
+
+                const settings = data.header?.viewSettings || {};
+                const points = data.advancedPointList || [];
+                const curves = data.advancedCurveList || [];
+                const bounds = calculateBounds(points);
+
+                const newMap = {
+                    id: mapId,
+                    name: name,
+                    alias: settings.alias || name.split('.')[0],
+                    points: points,
+                    curves: curves,
+                    x: 0, 
+                    y: 0,
+                    rotation: settings.rotation || 0,
+                    localScale: 1,
+                    isFlippedX: settings.isFlippedX || false,
+                    isFlippedY: settings.isFlippedY || false,
+                    color: color,
+                    mapBounds: bounds
+                };
+
+                const transformedOrigin = getPointWorldPos(newMap, 0, 0, true);
+                
+                if (loadedMaps.length > 0) {
+                    const firstMap = loadedMaps[0];
+                    const targetPos = getPointWorldPos(firstMap, 0, 0);
+                    newMap.x = targetPos.x - transformedOrigin.x;
+                    newMap.y = targetPos.y - transformedOrigin.y;
+                } else {
+                    newMap.x = -transformedOrigin.x;
+                    newMap.y = -transformedOrigin.y;
+                }
+
+                loadedMaps.push(newMap);
+                activeMapId = mapId;
+                updatePanel();
+                draw();
+            }
+
+            function getPointWorldPos(map, lx, ly, skipMapOffset = false) {
+                let x = lx - map.mapBounds.centerX;
+                let y = ly - map.mapBounds.centerY;
+                const rotRad = map.rotation * (Math.PI / 180);
+                const rx = x * Math.cos(rotRad) - y * Math.sin(rotRad);
+                const ry = x * Math.sin(rotRad) + y * Math.cos(rotRad);
+                const sx = rx * (map.isFlippedX ? -1 : 1) * map.localScale;
+                const sy = ry * (map.isFlippedY ? -1 : 1) * map.localScale;
+                return {
+                    x: sx + map.mapBounds.centerX + (skipMapOffset ? 0 : map.x),
+                    y: sy + map.mapBounds.centerY + (skipMapOffset ? 0 : map.y)
+                };
+            }
+
+            function calculateBounds(points) {
+                if (points.length === 0) return { minX: 0, minY: 0, maxX: 0, maxY: 0, centerX: 0, centerY: 0 };
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                points.forEach(p => {
+                    if (p.pos.x < minX) minX = p.pos.x;
+                    if (p.pos.x > maxX) maxX = p.pos.x;
+                    if (p.pos.y < minY) minY = p.pos.y;
+                    if (p.pos.y > maxY) maxY = p.pos.y;
+                });
+                return { minX, minY, maxX, maxY, centerX: (minX + maxX) / 2, centerY: (minY + maxY) / 2 };
+            }
+
+            // --- DRAWING ---
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawGrid();
+
+                ctx.save();
+                ctx.translate(canvas.width / 2 + viewState.offsetX, canvas.height / 2 + viewState.offsetY);
+                ctx.scale(viewState.scale, viewState.scale);
+
+                loadedMaps.forEach(map => {
+                    ctx.save();
+                    const isSelected = map.id === activeMapId;
+                    const rotRad = map.rotation * (Math.PI / 180);
+
+                    ctx.translate(map.x, map.y);
+                    ctx.translate(map.mapBounds.centerX, map.mapBounds.centerY);
+                    ctx.rotate(rotRad);
+                    ctx.scale(map.isFlippedX ? -1 : 1, map.isFlippedY ? -1 : 1);
+                    ctx.scale(map.localScale, map.localScale);
+                    ctx.translate(-map.mapBounds.centerX, -map.mapBounds.centerY);
+
+                    // Curves
+                    ctx.beginPath();
+                    ctx.strokeStyle = map.color;
+                    ctx.lineWidth = (isSelected ? 3 : 1.5) / (viewState.scale * map.localScale);
+                    ctx.globalAlpha = isSelected ? 1.0 : 0.5;
+                    
+                    map.curves.forEach(curve => {
+                        const start = map.points.find(p => p.instanceName === curve.startPos.instanceName);
+                        const end = map.points.find(p => p.instanceName === curve.endPos.instanceName);
+                        if (start && end) {
+                            ctx.moveTo(start.pos.x, start.pos.y);
+                            ctx.lineTo(end.pos.x, end.pos.y);
+                        }
+                    });
+                    ctx.stroke();
+
+                    // Points
+                    map.points.forEach(point => {
+                        const isNode = point.className === 'ActionPoint' || point.className === 'ChargePoint';
+                        const radius = (isNode ? 4 : 2) / (viewState.scale * map.localScale);
+                        ctx.beginPath();
+                        ctx.fillStyle = map.color;
+                        ctx.arc(point.pos.x, point.pos.y, radius, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        if (isNode) {
+                            ctx.save();
+                            ctx.translate(point.pos.x, point.pos.y);
+                            ctx.scale(map.isFlippedX ? -1 : 1, map.isFlippedY ? -1 : 1);
+                            ctx.rotate(-rotRad);
+                            ctx.font = `bold ${10 / viewState.scale}px Inter, sans-serif`;
+                            ctx.fillStyle = '#1e293b';
+                            ctx.textAlign = 'center';
+                            const yOffset = (radius * map.localScale) + (7 / viewState.scale);
+                            ctx.fillText(point.instanceName, 0, -yOffset);
+                            ctx.restore();
+                        }
+                    });
+                    ctx.restore();
+                });
+                ctx.restore();
+            }
+
+            function drawGrid() {
+                const gridSize = 50 * viewState.scale;
+                const offX = (canvas.width / 2 + viewState.offsetX) % gridSize;
+                const offY = (canvas.height / 2 + viewState.offsetY) % gridSize;
+                ctx.beginPath();
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+                for (let x = offX; x < canvas.width; x += gridSize) { ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); }
+                for (let y = offY; y < canvas.height; y += gridSize) { ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); }
+                ctx.stroke();
+            }
+
+            // --- INTERACTION ---
+            function getLocalMousePos(map, worldPos) {
+                let x = worldPos.x - map.x;
+                let y = worldPos.y - map.y;
+                x -= map.mapBounds.centerX;
+                y -= map.mapBounds.centerY;
+                const rotRad = -map.rotation * (Math.PI / 180);
+                const nx = x * Math.cos(rotRad) - y * Math.sin(rotRad);
+                const ny = x * Math.sin(rotRad) + y * Math.cos(rotRad);
+                x = nx / (map.isFlippedX ? -map.localScale : map.localScale);
+                y = ny / (map.isFlippedY ? -map.localScale : map.localScale);
+                x += map.mapBounds.centerX;
+                y += map.mapBounds.centerY;
+                return { x, y };
+            }
+
+            canvas.addEventListener('mousedown', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const worldX = (e.clientX - rect.left - canvas.width / 2 - viewState.offsetX) / viewState.scale;
+                const worldY = (e.clientY - rect.top - canvas.height / 2 - viewState.offsetY) / viewState.scale;
+                viewState.lastX = e.clientX;
+                viewState.lastY = e.clientY;
+
+                if (e.button === 2) { viewState.isPanning = true; return; }
+
+                let foundMap = null;
+                const hitRadius = 15 / viewState.scale;
+                for (let i = loadedMaps.length - 1; i >= 0; i--) {
+                    const map = loadedMaps[i];
+                    const localPos = getLocalMousePos(map, { x: worldX, y: worldY });
+                    for (const p of map.points) {
+                        const d = Math.hypot(p.pos.x - localPos.x, p.pos.y - localPos.y) * map.localScale;
+                        if (d < hitRadius) { foundMap = map; break; }
+                    }
+                    if (foundMap) break;
+                }
+
+                if (foundMap) {
+                    activeMapId = foundMap.id;
+                    viewState.isDraggingMap = true;
+                    updatePanel();
+                } else {
+                    activeMapId = null;
+                    viewState.isPanning = true;
+                    updatePanel();
+                }
+                draw();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const dx = e.clientX - viewState.lastX;
+                const dy = e.clientY - viewState.lastY;
+
+                const worldX = (e.clientX - rect.left - canvas.width / 2 - viewState.offsetX) / viewState.scale;
+                const worldY = (e.clientY - rect.top - canvas.height / 2 - viewState.offsetY) / viewState.scale;
+
+                if (loadedMaps.length > 0) {
+                    coordHud.classList.remove('hidden');
+                    coordList.innerHTML = loadedMaps.map(map => {
+                        const local = getLocalMousePos(map, { x: worldX, y: worldY });
+                        return `
+                            <div class="flex items-center justify-between text-[11px] gap-4">
+                                <div class="flex items-center gap-1.5 overflow-hidden">
+                                    <span class="w-2 h-2 rounded-full flex-shrink-0" style="background-color: ${map.color}"></span>
+                                    <span class="font-bold text-slate-700 truncate" title="${map.name}">[${map.alias || 'No Alias'}]</span>
+                                </div>
+                                <span class="font-mono bg-slate-100 px-1 rounded border border-slate-200 whitespace-nowrap">
+                                    X: ${local.x.toFixed(2)}, Y: ${local.y.toFixed(2)}
+                                </span>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    coordHud.classList.add('hidden');
+                }
+
+                if (viewState.isPanning) {
+                    viewState.offsetX += dx;
+                    viewState.offsetY += dy;
+                } else if (viewState.isDraggingMap && activeMapId) {
+                    const map = loadedMaps.find(m => m.id === activeMapId);
+                    if (map) { map.x += dx / viewState.scale; map.y += dy / viewState.scale; }
+                }
+
+                viewState.lastX = e.clientX;
+                viewState.lastY = e.clientY;
+                if (viewState.isPanning || viewState.isDraggingMap || loadedMaps.length > 0) draw();
+            });
+
+            window.addEventListener('mouseup', () => {
+                viewState.isPanning = false;
+                viewState.isDraggingMap = false;
+            });
+
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomFactor = 1.1;
+                const delta = e.deltaY > 0 ? 1 / zoomFactor : zoomFactor;
+                viewState.scale *= delta;
+                draw();
+            }, { passive: false });
+
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+            // --- UI PANEL LOGIC ---
+            function updatePanel() {
+                if (activeMapId) {
+                    const map = loadedMaps.find(m => m.id === activeMapId);
+                    activeMapName.textContent = map.name;
+                    activeMapColorBox.style.backgroundColor = map.color;
+                    localAliasInput.value = map.alias || "";
+                    localScaleSlider.value = map.localScale;
+                    localScaleValue.textContent = `${Math.round(map.localScale * 100)}%`;
+                    localRotationSlider.value = map.rotation;
+                    localRotationInput.value = map.rotation.toFixed(2);
+                    localRotationValue.textContent = `${map.rotation.toFixed(2)}°`;
+                    localFlipX.checked = map.isFlippedX;
+                    localFlipY.checked = map.isFlippedY;
+                    controlsPanel.classList.remove('translate-y-full');
+                } else {
+                    controlsPanel.classList.add('translate-y-full');
+                }
+            }
+
+            const updateActiveMap = (prop, val) => {
+                if (!activeMapId) return;
+                const map = loadedMaps.find(m => m.id === activeMapId);
+                map[prop] = val;
+                draw();
+            };
+
+            localAliasInput.addEventListener('input', e => updateActiveMap('alias', e.target.value));
+
+            localScaleSlider.addEventListener('input', e => {
+                const val = parseFloat(e.target.value);
+                localScaleValue.textContent = `${Math.round(val * 100)}%`;
+                updateActiveMap('localScale', val);
+            });
+
+            const syncRotation = (val) => {
+                const deg = parseFloat(val) || 0;
+                localRotationValue.textContent = `${deg.toFixed(2)}°`;
+                localRotationSlider.value = deg;
+                localRotationInput.value = deg.toFixed(2);
+                updateActiveMap('rotation', deg);
+            };
+
+            localRotationSlider.addEventListener('input', e => syncRotation(e.target.value));
+            localRotationInput.addEventListener('input', e => syncRotation(e.target.value));
+            localFlipX.addEventListener('change', e => updateActiveMap('isFlippedX', e.target.checked));
+            localFlipY.addEventListener('change', e => updateActiveMap('isFlippedY', e.target.checked));
+
+            resetMapBtn.addEventListener('click', () => {
+                if (!activeMapId) return;
+                const map = loadedMaps.find(m => m.id === activeMapId);
+                map.localScale = 1; map.rotation = 0; map.isFlippedX = false; map.isFlippedY = false;
+                updatePanel(); draw();
+            });
+
+            removeMapBtn.addEventListener('click', () => {
+                loadedMaps = loadedMaps.filter(m => m.id !== activeMapId);
+                activeMapId = null; updatePanel(); draw();
+            });
+        });
+    </script>
+</body>
+</html>
