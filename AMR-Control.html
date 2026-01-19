@@ -39,6 +39,71 @@
             transform: scale(0.95);
             transition: transform 0.1s;
         }
+
+        /* FG Selected Parts Tags */
+        .fg-tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 8px;
+            background: #fff;
+            border-radius: 16px;
+        }
+
+        .fg-tag {
+            background-color: #fff7ed;
+            /* orange-50 */
+            border: 2px solid #fed7aa;
+            /* orange-200 */
+            color: #c2410c;
+            /* orange-700 */
+            font-weight: 700;
+            font-size: 1.125rem;
+            padding: 8px 16px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 280px;
+            min-width: 100px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .fg-tag:active {
+            transform: scale(0.96);
+        }
+
+        .fg-tag-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .fg-tag.scrolling .fg-tag-name {
+            text-overflow: clip;
+        }
+
+        .fg-tag.scrolling .fg-tag-name span {
+            display: inline-block;
+            animation: marquee 6s linear infinite;
+            padding-right: 50px;
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
     </style>
 </head>
 
@@ -55,6 +120,11 @@
             <!-- Time Removed -->
 
             <!-- Status Icons -->
+            <button id="btn-edit-text" onclick="toggleEditMode()"
+                class="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full text-gray-500 hover:bg-orange-100 hover:text-orange-600 transition-colors">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span class="text-xs font-bold">Edit Text</span>
+            </button>
             <div class="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full">
                 <i id="wifi-icon" class="fa-solid fa-wifi text-green-500 text-lg"></i>
                 <span class="text-xs font-bold text-gray-500">Ready</span>
@@ -72,60 +142,9 @@
         <!-- Page: Main Menu -->
         <div id="page-main"
             class="page absolute inset-0 p-6 flex flex-col items-center justify-center transition-opacity duration-300">
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-5xl h-full max-h-[600px]">
-                <button onclick="navigateTo('page-point-menu')"
-                    class="btn-press bg-white rounded-2xl shadow-md flex flex-col items-center justify-center gap-4 border-b-4 border-blue-500 hover:bg-blue-50 transition-colors">
-                    <div
-                        class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-4xl">
-                        <i class="fa-solid fa-location-dot"></i>
-                    </div>
-                    <span class="text-2xl font-bold text-gray-700">Point 1,4,7,10</span>
-                </button>
-
-                <button onclick="navigateTo('page-fg-truck')"
-                    class="btn-press bg-white rounded-2xl shadow-md flex flex-col items-center justify-center gap-4 border-b-4 border-orange-500 hover:bg-orange-50 transition-colors">
-                    <div
-                        class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-4xl">
-                        <i class="fa-solid fa-truck-ramp-box"></i>
-                    </div>
-                    <span class="text-2xl font-bold text-gray-700">ยก FG มาส่ง Truck</span>
-                </button>
-
-                <button onclick="navigateTo('page-empty-pallet')"
-                    class="btn-press bg-white rounded-2xl shadow-md flex flex-col items-center justify-center gap-4 border-b-4 border-green-500 hover:bg-green-50 transition-colors">
-                    <div
-                        class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-4xl">
-                        <i class="fa-solid fa-pallet"></i>
-                    </div>
-                    <span class="text-2xl font-bold text-gray-700">จัดการ Empty Pallet</span>
-                </button>
-
-                <button onclick="navigateTo('page-wh')"
-                    class="btn-press bg-white rounded-2xl shadow-md flex flex-col items-center justify-center gap-4 border-b-4 border-purple-500 hover:bg-purple-50 transition-colors">
-                    <div
-                        class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-4xl">
-                        <i class="fa-solid fa-warehouse"></i>
-                    </div>
-                    <span class="text-2xl font-bold text-gray-700">จัดการ WH</span>
-                </button>
-
-                <button onclick="navigateTo('page-queue')"
-                    class="btn-press bg-white rounded-2xl shadow-md flex flex-col items-center justify-center gap-4 border-b-4 border-red-500 hover:bg-red-50 transition-colors">
-                    <div
-                        class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-4xl">
-                        <i class="fa-solid fa-list-check"></i>
-                    </div>
-                    <span class="text-2xl font-bold text-gray-700">จัดการคิวงาน</span>
-                </button>
-
-                <button onclick="navigateTo('page-amr')"
-                    class="btn-press bg-white rounded-2xl shadow-md flex flex-col items-center justify-center gap-4 border-b-4 border-gray-500 hover:bg-gray-50 transition-colors">
-                    <div
-                        class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center text-gray-700 text-4xl">
-                        <i class="fa-solid fa-robot"></i>
-                    </div>
-                    <span class="text-2xl font-bold text-gray-700">ควบคุม AMR</span>
-                </button>
+            <div id="main-menu-grid"
+                class="grid grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-5xl h-full max-h-[600px]">
+                <!-- Dynamic Content -->
             </div>
         </div>
 
@@ -136,22 +155,11 @@
                     class="btn-press bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
-                <div class="text-2xl font-bold text-blue-800">Point Selection</div>
+                <div id="page-point-menu-title" class="text-2xl font-bold text-blue-800">Point Selection</div>
                 <div class="w-24"></div>
             </div>
-            <div class="grid grid-cols-2 gap-8 w-full max-w-4xl mt-10">
-                <button onclick="navigateTo('point-1')"
-                    class="btn-press h-40 bg-white rounded-2xl shadow-lg border-l-8 border-blue-500 flex items-center justify-center text-4xl font-bold text-gray-700 hover:bg-blue-50">Point
-                    #1</button>
-                <button onclick="navigateTo('point-4')"
-                    class="btn-press h-40 bg-white rounded-2xl shadow-lg border-l-8 border-blue-500 flex items-center justify-center text-4xl font-bold text-gray-700 hover:bg-blue-50">Point
-                    #4</button>
-                <button onclick="navigateTo('point-7')"
-                    class="btn-press h-40 bg-white rounded-2xl shadow-lg border-l-8 border-blue-500 flex items-center justify-center text-4xl font-bold text-gray-700 hover:bg-blue-50">Point
-                    #7</button>
-                <button onclick="navigateTo('point-10')"
-                    class="btn-press h-40 bg-white rounded-2xl shadow-lg border-l-8 border-blue-500 flex items-center justify-center text-4xl font-bold text-gray-700 hover:bg-blue-50">Point
-                    #10</button>
+            <div id="point-menu-grid" class="grid grid-cols-2 gap-8 w-full max-w-4xl mt-10">
+                <!-- Dynamic Content -->
             </div>
         </div>
 
@@ -164,10 +172,16 @@
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
                 <div id="point-detail-title" class="text-2xl font-bold text-blue-800">Point #X</div>
-                <div class="w-24"></div>
+                <!-- Call Empty Pallet Button -->
+                <button onclick="callEmptyPallet()"
+                    class="btn-press bg-green-100 text-green-700 rounded-xl py-3 px-6 text-lg font-bold shadow-md hover:bg-green-200 transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-pallet"></i>
+                    เรียก Empty Pallet
+                </button>
             </div>
 
             <div class="w-full max-w-2xl bg-white rounded-3xl shadow-xl p-8 flex flex-col gap-6">
+
 
                 <!-- Scan QR -->
                 <div class="flex justify-center mb-4">
@@ -197,6 +211,14 @@
                         placeholder="Scan หรือ ระบุ Part">
                 </div>
 
+                <!-- Input Quantity -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-lg font-semibold text-gray-600">Amount (Qty)</label>
+                    <input type="number" id="input-point-amount"
+                        class="w-full bg-gray-100 border-2 border-gray-300 rounded-xl px-4 py-4 text-2xl font-bold text-center focus:outline-none focus:border-blue-500 transition-colors"
+                        placeholder="จำนวน">
+                </div>
+
                 <button onclick="confirmPointJob()"
                     class="btn-press mt-4 bg-green-500 text-white rounded-xl py-4 text-2xl font-bold shadow-lg hover:bg-green-600 transition-colors">
                     ยืนยัน
@@ -214,36 +236,42 @@
                     class="btn-press bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
-                <div class="text-2xl font-bold text-orange-600">FG to Truck</div>
+                <div id="page-fg-truck-title" class="text-2xl font-bold text-orange-600">FG to Truck</div>
                 <div class="w-24"></div>
             </div>
 
             <div class="w-full max-w-2xl bg-white rounded-3xl shadow-xl p-8 flex flex-col gap-6">
 
                 <div class="flex justify-center mb-4">
-                    <button onclick="simulateScanQR('fg')"
-                        class="btn-press bg-orange-100 p-6 rounded-full shadow-inner hover:bg-orange-200 transition-colors">
-                        <i class="fa-solid fa-qrcode text-5xl text-orange-600"></i>
+                    <button id="btn-scan-qr" onclick="toggleScanQR()"
+                        class="btn-press bg-orange-100 p-6 rounded-full shadow-inner hover:bg-orange-200 transition-colors flex flex-col items-center gap-2">
+                        <i id="scan-icon" class="fa-solid fa-qrcode text-5xl text-orange-600"></i>
+                        <span id="scan-label" class="text-lg font-bold text-orange-600">แสกน QR</span>
                     </button>
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label class="text-lg font-semibold text-gray-600">Item Part No.</label>
-                    <input type="text" id="input-fg-item"
-                        class="w-full bg-gray-100 border-2 border-gray-300 rounded-xl px-4 py-4 text-2xl font-bold text-center focus:outline-none focus:border-orange-500"
-                        placeholder="Scan หรือ ระบุ Part">
+                    <label class="text-lg font-semibold text-gray-600">Item Part No. (เลือกได้เฉพาะที่มีใน WH)</label>
+                    <div class="relative">
+                        <input type="text" id="input-fg-item" oninput="handleFGPartInput(this.value)"
+                            class="w-full bg-gray-100 border-2 border-gray-300 rounded-xl px-4 py-4 text-2xl font-bold text-center focus:outline-none focus:border-orange-500"
+                            placeholder="พิมพ์ชื่อ Part หรือ แสกน">
+
+                        <div id="fg-part-dropdown"
+                            class="hidden absolute left-0 right-0 top-full bg-white border border-gray-200 shadow-xl rounded-xl z-30 max-h-60 overflow-y-auto mt-2 p-2">
+                            <!-- Dropdown items via JS -->
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flex flex-col gap-2">
-                    <label class="text-lg font-semibold text-gray-600">Amount (Qty)</label>
-                    <input type="number" id="input-fg-amount"
-                        class="w-full bg-gray-100 border-2 border-gray-300 rounded-xl px-4 py-4 text-2xl font-bold text-center focus:outline-none focus:border-orange-500"
-                        placeholder="จำนวน">
+                <!-- Container for selected parts -->
+                <div id="fg-selected-parts" class="fg-tag-container">
+                    <!-- Tags via JS -->
                 </div>
 
                 <button onclick="confirmFGJob()"
                     class="btn-press mt-4 bg-green-500 text-white rounded-xl py-4 text-2xl font-bold shadow-lg hover:bg-green-600 transition-colors">
-                    ยืนยัน
+                    ยืนยันเรียกงาน
                 </button>
             </div>
 
@@ -257,7 +285,7 @@
                     class="btn-press bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
-                <div class="text-2xl font-bold text-green-700">Empty Pallet</div>
+                <div id="page-empty-pallet-title" class="text-2xl font-bold text-green-700">Empty Pallet</div>
                 <div id="pallet-status-summary"
                     class="text-sm font-medium text-gray-600 bg-white px-3 py-1 rounded-lg border border-gray-200">
                     Loading...
@@ -293,7 +321,7 @@
                     class="btn-press bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
-                <div class="text-2xl font-bold text-purple-700">Warehouse</div>
+                <div id="page-wh-title" class="text-2xl font-bold text-purple-700">Warehouse</div>
                 <div id="wh-status-summary"
                     class="text-sm font-medium text-gray-600 bg-white px-3 py-1 rounded-lg border border-gray-200">
                     Loading...
@@ -328,8 +356,11 @@
                     class="btn-press bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
-                <div class="text-2xl font-bold text-red-600">Job Queue</div>
-                <div class="w-24"></div>
+                <div id="page-queue-title" class="text-2xl font-bold text-red-600">Job Queue</div>
+                <button onclick="exportQueueToCSV()"
+                    class="btn-press bg-red-100 text-red-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2 shadow-md hover:bg-red-200 transition-colors">
+                    <i class="fa-solid fa-file-csv"></i> Export CSV
+                </button>
             </div>
 
             <div
@@ -365,7 +396,7 @@
                     class="btn-press bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
-                <div class="text-2xl font-bold text-gray-700">AMR Control Panel</div>
+                <div id="page-amr-title" class="text-2xl font-bold text-gray-700">AMR Control Panel</div>
                 <div class="w-24"></div>
             </div>
 
@@ -471,9 +502,27 @@
         <!-- Input Modal (WH) -->
         <div id="modal-input" class="hidden bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
             <h3 class="text-2xl font-bold text-gray-800 mb-4">Input Data</h3>
-            <p id="modal-input-msg" class="text-gray-600 mb-4 text-lg">Please enter Item Part:</p>
-            <input type="text" id="modal-input-field"
-                class="w-full border-2 border-gray-300 rounded-xl p-3 text-xl mb-6 focus:border-blue-500 outline-none">
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="text-sm font-semibold text-gray-500 mb-1 block">Item Part No.</label>
+                    <input type="text" id="modal-input-field"
+                        class="w-full border-2 border-gray-300 rounded-xl p-3 text-xl focus:border-blue-500 outline-none"
+                        placeholder="ระบุ Part">
+                </div>
+                <div>
+                    <label class="text-sm font-semibold text-gray-500 mb-1 block">Amount (Qty)</label>
+                    <input type="number" id="modal-input-amount"
+                        class="w-full border-2 border-gray-300 rounded-xl p-3 text-xl focus:border-blue-500 outline-none"
+                        placeholder="จำนวน">
+                </div>
+                <div>
+                    <label class="text-sm font-semibold text-gray-500 mb-1 block">Date & Time</label>
+                    <input type="datetime-local" id="modal-input-datetime"
+                        class="w-full border-2 border-gray-300 rounded-xl p-3 text-xl focus:border-blue-500 outline-none">
+                </div>
+            </div>
+
             <div class="flex justify-end space-x-4">
                 <button onclick="closeModal()"
                     class="px-6 py-3 rounded-xl text-gray-600 font-bold hover:bg-gray-100 text-lg">Cancel</button>
@@ -536,7 +585,12 @@
                 { id: 'J-1003', type: 'Point', source: 'Point #1', item: 'Part-C33', amount: '-', status: Date.now() - 20000 },
             ],
             pallets: Array.from({ length: CONFIG.palletCount }, (_, i) => ({ id: i + 1, status: Math.random() > 0.5 ? 'empty' : 'full' })),
-            wh: Array.from({ length: CONFIG.whCount }, (_, i) => ({ id: i + 1, value: Math.random() > 0.7 ? '2450616-T' : null })),
+            wh: Array.from({ length: CONFIG.whCount }, (_, i) => ({
+                id: i + 1,
+                value: Math.random() > 0.7 ? '2450616-T' : null,
+                amount: Math.random() > 0.7 ? 1000 : 0,
+                timestamp: Date.now() - Math.floor(Math.random() * 1000000000)
+            })),
             pagination: {
                 pallet: 1,
                 wh: 1,
@@ -546,8 +600,45 @@
                 wifi: true,
                 battery: 85,
                 status: 'Idle'
+            },
+            editMode: false,
+            fgSelectedParts: [],
+            isScanning: false,
+            pointLabels: { 1: 'Point #1', 4: 'Point #4', 7: 'Point #7', 10: 'Point #10' },
+            palletLabels: Array.from({ length: CONFIG.palletCount }, (_, i) => `E${i + 1}`),
+            whLabels: Array.from({ length: CONFIG.whCount }, (_, i) => `WH${i + 1}`),
+            mainMenuLabels: {
+                'page-point-menu': 'Point 1,4,7,10',
+                'page-fg-truck': 'ยก FG มาส่ง Truck',
+                'page-empty-pallet': 'จัดการ Empty Pallet',
+                'page-wh': 'จัดการ WH',
+                'page-queue': 'จัดการคิวงาน',
+                'page-amr': 'ควบคุม AMR'
             }
         };
+
+        function toggleEditMode() {
+            appState.editMode = !appState.editMode;
+            const btn = document.getElementById('btn-edit-text');
+            if (appState.editMode) {
+                btn.classList.add('bg-orange-500', 'text-white');
+                btn.classList.remove('bg-gray-100', 'text-gray-500');
+                btn.querySelector('span').innerText = 'Save & Close';
+                showToast("Edit Mode Active", "info");
+            } else {
+                btn.classList.remove('bg-orange-500', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-500');
+                btn.querySelector('span').innerText = 'Edit Text';
+                showToast("Labels Saved");
+            }
+
+            // Re-render current page if applicable
+            const activePage = window.location.hash.substring(1) || 'page-main';
+            if (activePage === 'page-main') renderMainMenu();
+            if (activePage === 'page-point-menu') renderPointMenu();
+            if (activePage === 'page-empty-pallet') renderPallets();
+            if (activePage === 'page-wh') renderWH();
+        }
 
         // --- Navigation ---
         function renderPage(pageId) {
@@ -582,14 +673,30 @@
             target.classList.add('flex'); // Add flex back for centering
 
             // Specific page init
+            if (pageId !== 'page-fg-truck' && appState.isScanning) {
+                toggleScanQR();
+            }
+
             if (pageId === 'page-main') {
                 updateHeader('AMR Control');
+                renderMainMenu();
+            } else if (pageId === 'page-point-menu') {
+                renderPointMenu();
+                syncPageTitle(pageId);
+            } else if (pageId === 'page-fg-truck') {
+                syncPageTitle(pageId);
+                renderFGParts();
             } else if (pageId === 'page-empty-pallet') {
                 renderPallets();
+                syncPageTitle(pageId);
             } else if (pageId === 'page-wh') {
                 renderWH();
+                syncPageTitle(pageId);
             } else if (pageId === 'page-queue') {
                 renderQueue();
+                syncPageTitle(pageId);
+            } else if (pageId === 'page-amr') {
+                syncPageTitle(pageId);
             }
         }
 
@@ -612,21 +719,104 @@
             document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
         }, 1000);
 
+        function renderPointMenu() {
+            const grid = document.getElementById('point-menu-grid');
+            grid.innerHTML = '';
+            [1, 4, 7, 10].forEach(pNum => {
+                const btn = document.createElement('div'); // Using div to allow input inside
+                btn.className = `h-40 bg-white rounded-2xl shadow-lg border-l-8 border-blue-500 flex flex-col items-center justify-center text-4xl font-bold text-gray-700 hover:bg-blue-50 cursor-pointer relative`;
+
+                if (appState.editMode) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'w-[80%] text-center bg-gray-50 border-2 border-orange-300 rounded-lg text-2xl p-2 outline-none';
+                    input.value = appState.pointLabels[pNum];
+                    input.onclick = (e) => e.stopPropagation();
+                    input.oninput = (e) => {
+                        appState.pointLabels[pNum] = e.target.value;
+                    };
+                    btn.appendChild(input);
+                    const label = document.createElement('span');
+                    label.className = 'text-xs text-orange-500 mt-2 font-normal';
+                    label.innerText = 'Editing...';
+                    btn.appendChild(label);
+                } else {
+                    btn.innerText = appState.pointLabels[pNum];
+                    btn.onclick = () => navigateTo(`point-${pNum}`);
+                }
+                grid.appendChild(btn);
+            });
+        }
+
+        function renderMainMenu() {
+            const grid = document.getElementById('main-menu-grid');
+            grid.innerHTML = '';
+            const items = [
+                { id: 'page-point-menu', icon: 'fa-location-dot', color: 'blue' },
+                { id: 'page-fg-truck', icon: 'fa-truck-ramp-box', color: 'orange' },
+                { id: 'page-empty-pallet', icon: 'fa-pallet', color: 'green' },
+                { id: 'page-wh', icon: 'fa-warehouse', color: 'purple' },
+                { id: 'page-queue', icon: 'fa-list-check', color: 'red' },
+                { id: 'page-amr', icon: 'fa-robot', color: 'gray' }
+            ];
+
+            items.forEach(item => {
+                const btn = document.createElement('div');
+                btn.className = `btn-press bg-white rounded-2xl shadow-md flex flex-col items-center justify-center gap-4 border-b-4 border-${item.color}-500 hover:bg-${item.color}-50 transition-colors cursor-pointer`;
+
+                const iconContainer = document.createElement('div');
+                iconContainer.className = `w-20 h-20 bg-${item.color}-100 rounded-full flex items-center justify-center text-${item.color}-600 text-4xl`;
+                iconContainer.innerHTML = `<i class="fa-solid ${item.icon}"></i>`;
+                btn.appendChild(iconContainer);
+
+                if (appState.editMode) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'w-[90%] text-center bg-gray-50 border-2 border-orange-300 rounded-lg text-xl p-1 outline-none font-bold text-gray-700';
+                    input.value = appState.mainMenuLabels[item.id];
+                    input.onclick = (e) => e.stopPropagation();
+                    input.oninput = (e) => {
+                        appState.mainMenuLabels[item.id] = e.target.value;
+                    };
+                    btn.appendChild(input);
+                    const hint = document.createElement('span');
+                    hint.className = 'text-xs text-orange-500 font-normal mt-[-8px]';
+                    hint.innerText = 'Editing...';
+                    btn.appendChild(hint);
+                } else {
+                    const label = document.createElement('span');
+                    label.className = 'text-2xl font-bold text-gray-700 text-center px-4';
+                    label.innerText = appState.mainMenuLabels[item.id];
+                    btn.appendChild(label);
+                    btn.onclick = () => navigateTo(item.id);
+                }
+                grid.appendChild(btn);
+            });
+        }
+
+        function syncPageTitle(pageId) {
+            const titleEl = document.getElementById(`${pageId}-title`);
+            if (titleEl && appState.mainMenuLabels[pageId]) {
+                titleEl.innerText = appState.mainMenuLabels[pageId];
+            }
+        }
+
         // --- Point Logic ---
         function openPointDetail(pointNum) {
             appState.currentPoint = pointNum;
-            document.getElementById('point-detail-title').innerText = `Point #${pointNum}`;
+            document.getElementById('point-detail-title').innerText = appState.pointLabels[pointNum] || `Point #${pointNum}`;
 
             // Reset Inputs
             const inputStation = document.getElementById('input-point-station');
             inputStation.value = '';
             document.getElementById('input-point-item').value = '';
+            document.getElementById('input-point-amount').value = '';
             document.getElementById('station-hint').innerText = '';
 
             // Hint logic
             let hint = "";
-            if (pointNum === 1) hint = "ใส่ได้เฉพาะเลข 2";
-            if (pointNum === 4) hint = "ใส่ได้เฉพาะเลข 3, 5, 6";
+            if (pointNum === 1) hint = "ใส่ได้เฉพาะเลข 2 กับ 3";
+            if (pointNum === 4) hint = "ใส่ได้เฉพาะเลข 5 กับ 6";
             if (pointNum === 7) hint = "ใส่ได้เฉพาะเลข 8";
             if (pointNum === 10) hint = "ใส่ได้เฉพาะเลข 9";
             inputStation.placeholder = `Station (${hint})`;
@@ -640,8 +830,8 @@
             const v = parseInt(val);
             if (isNaN(v)) return false;
 
-            if (p === 1 && v === 2) return true;
-            if (p === 4 && [3, 5, 6].includes(v)) return true;
+            if (p === 1 && [2, 3].includes(v)) return true;
+            if (p === 4 && [5, 6].includes(v)) return true;
             if (p === 7 && v === 8) return true;
             if (p === 10 && v === 9) return true;
             return false;
@@ -650,6 +840,7 @@
         function confirmPointJob() {
             const stInput = document.getElementById('input-point-station');
             const itInput = document.getElementById('input-point-item');
+            const amInput = document.getElementById('input-point-amount');
             const hintEl = document.getElementById('station-hint');
 
             if (!validateStation(stInput.value)) {
@@ -659,6 +850,10 @@
             }
             if (!itInput.value) {
                 showToast("กรุณาระบุ Item Part", "error");
+                return;
+            }
+            if (!amInput.value) {
+                showToast("กรุณาระบุจำนวน", "error");
                 return;
             }
 
@@ -671,31 +866,103 @@
             }
 
             // Add Job
-            addJob('Point', `Point #${appState.currentPoint} (St.${stInput.value})`, itInput.value, '-');
+            addJob('Point', `Point #${appState.currentPoint} (St.${stInput.value})`, itInput.value, amInput.value);
 
             hintEl.innerText = '';
             stInput.value = '';
             itInput.value = '';
+            amInput.value = '';
             showToast("เพิ่มงานสำเร็จ!");
             // updateMiniQueue(); // Removed functionality
         }
 
         // --- FG Logic ---
-        function confirmFGJob() {
-            const item = document.getElementById('input-fg-item').value;
-            const amt = document.getElementById('input-fg-amount').value;
-
-            if (!item || !amt) {
-                showToast("กรุณากรอกข้อมูลให้ครบ", "error");
+        function handleFGPartInput(q) {
+            const dropdown = document.getElementById('fg-part-dropdown');
+            if (!q) {
+                dropdown.classList.add('hidden');
                 return;
             }
 
-            addJob('FG', 'FG to Truck', item, amt);
+            const parts = getAvailableWHParts().filter(p => p.toLowerCase().includes(q.toLowerCase()));
+            if (parts.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
 
+            dropdown.innerHTML = parts.map(p => `
+                <div onclick="addFGPart('${p}')" class="p-3 hover:bg-orange-50 cursor-pointer text-xl font-bold border-b last:border-0 border-gray-100">
+                    ${p}
+                </div>
+            `).join('');
+            dropdown.classList.remove('hidden');
+        }
+
+        function addFGPart(name) {
+            const whCount = appState.wh.filter(w => w.value === name).length;
+            const currentSelectedCount = appState.fgSelectedParts.filter(p => p === name).length;
+
+            if (currentSelectedCount >= whCount) {
+                // Only show toast if it's a manual action or if scanning just hit the limit
+                showToast(`ใน Warehouse มี Part "${name}" เพียง ${whCount} รายการ`, "error");
+                return;
+            }
+
+            appState.fgSelectedParts.push(name);
+            renderFGParts();
             document.getElementById('input-fg-item').value = '';
-            document.getElementById('input-fg-amount').value = '';
-            showToast("เพิ่มงาน FG สำเร็จ!");
-            // updateMiniQueue(); // Removed functionality
+            document.getElementById('fg-part-dropdown').classList.add('hidden');
+        }
+
+        function removeFGPart(idx) {
+            appState.fgSelectedParts.splice(idx, 1);
+            renderFGParts();
+        }
+
+        function renderFGParts() {
+            const container = document.getElementById('fg-selected-parts');
+            if (appState.fgSelectedParts.length === 0) {
+                container.innerHTML = '<div class="text-gray-300 italic w-full text-center py-4">ยังไม่ได้เลือกรายการ</div>';
+                return;
+            }
+
+            const currentCounts = {};
+            container.innerHTML = appState.fgSelectedParts.map((p, i) => {
+                currentCounts[p] = (currentCounts[p] || 0) + 1;
+                const displayName = currentCounts[p] > 1 ? `${p} #${currentCounts[p]}` : p;
+
+                return `
+                    <div class="fg-tag" onclick="this.classList.toggle('scrolling')">
+                        <div class="fg-tag-name"><span>${displayName}</span></div>
+                        <button onclick="event.stopPropagation(); removeFGPart(${i})" class="text-red-400 hover:text-red-600 transition-colors">
+                            <i class="fa-solid fa-circle-xmark text-xl"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getAvailableWHParts() {
+            return [...new Set(appState.wh.filter(w => w.value).map(w => w.value))];
+        }
+
+        function confirmFGJob() {
+            if (appState.fgSelectedParts.length === 0) {
+                showToast("กรุณาเลือก Part อย่างน้อย 1 รายการ", "error");
+                return;
+            }
+
+            const count = appState.fgSelectedParts.length;
+            appState.fgSelectedParts.forEach(item => {
+                addJob('FG', 'FG to Truck', item, '-');
+            });
+
+            if (appState.isScanning) toggleScanQR(); // Stop scanning on confirm
+
+            appState.fgSelectedParts = [];
+            renderFGParts();
+            showToast(`เพิ่มงาน FG ${count} รายการ สำเร็จ!`);
+            navigateTo('page-queue');
         }
 
         /* function updateMiniQueue() {
@@ -728,11 +995,78 @@
             appState.queue.push(newJob); // Add to end (FIFO)
         }
 
+        // --- Call Empty Pallet ---
+        function callEmptyPallet() {
+            if (!appState.currentPoint) {
+                showToast("ไม่พบ Point", "error");
+                return;
+            }
+
+            const pointNum = appState.currentPoint;
+            const targetSource = `Point #${pointNum}`;
+
+            // Check Duplicate: Only if status is not 'Completed'
+            const exists = appState.queue.some(j => j.type === 'Empty' && j.source === targetSource && j.status !== 'Completed');
+            if (exists) {
+                const pLabel = appState.pointLabels[pointNum] || targetSource;
+                showToast(`งาน Empty Pallet สำหรับ ${pLabel} มีอยู่ในคิวแล้ว`, "error");
+                return;
+            }
+
+            addJob('Empty', targetSource, 'Empty Pallet', '-');
+            showToast(`เรียก Empty Pallet สำเร็จ!`);
+        }
+
         // --- QR Scan Simulation ---
+        let scanInterval = null;
+        function toggleScanQR() {
+            appState.isScanning = !appState.isScanning;
+            const btn = document.getElementById('btn-scan-qr');
+            const icon = document.getElementById('scan-icon');
+            const label = document.getElementById('scan-label');
+
+            if (appState.isScanning) {
+                btn.classList.add('bg-red-100', 'border-2', 'border-red-400');
+                btn.classList.remove('bg-orange-100');
+                icon.classList.remove('fa-qrcode', 'text-orange-600');
+                icon.classList.add('fa-video-slash', 'text-red-600');
+                label.innerText = "ปิดแสกน";
+                label.classList.replace('text-orange-600', 'text-red-600');
+
+                showToast("เปิดแสกน QR ต่อเนื่อง...", "info");
+
+                // Simulate continuous scanning
+                scanInterval = setInterval(() => {
+                    const available = getAvailableWHParts();
+                    if (available.length > 0) {
+                        const randomPart = available[Math.floor(Math.random() * available.length)];
+                        // Allow adding multiple if WH has more
+                        const whTotal = appState.wh.filter(w => w.value === randomPart).length;
+                        const selTotal = appState.fgSelectedParts.filter(p => p === randomPart).length;
+
+                        if (selTotal < whTotal) {
+                            addFGPart(randomPart);
+                            showToast(`QR เจอ Part: ${randomPart}`);
+                        }
+                    }
+                }, 2000); // scan every 2 sec
+            } else {
+                btn.classList.remove('bg-red-100', 'border-2', 'border-red-400');
+                btn.classList.add('bg-orange-100');
+                icon.classList.add('fa-qrcode', 'text-orange-600');
+                icon.classList.remove('fa-video-slash', 'text-red-600');
+                label.innerText = "แสกน QR";
+                label.classList.replace('text-red-600', 'text-orange-600');
+
+                clearInterval(scanInterval);
+                showToast("ปิดการแสกน");
+            }
+        }
+
         function simulateScanQR(context) {
-            showToast("Scanning QR...", "info");
-            setTimeout(() => {
-                if (context === 'point') {
+            if (context === 'point') {
+                showToast("Scanning QR...", "info");
+                setTimeout(() => {
                     // Random valid station based on point
                     let validSt = 2;
                     if (appState.currentPoint === 4) validSt = 5;
@@ -741,11 +1075,9 @@
 
                     document.getElementById('input-point-station').value = validSt;
                     document.getElementById('input-point-item').value = 'QR-PART-' + Math.floor(Math.random() * 1000);
-                } else if (context === 'fg') {
-                    document.getElementById('input-fg-item').value = Math.floor(Math.random() * 900000);
-                }
-                showToast("QR Scan Success!");
-            }, 1000);
+                    showToast("QR Scan Success!");
+                }, 1000);
+            }
         }
 
         // --- Empty Pallet Logic ---
@@ -766,15 +1098,33 @@
 
             pageData.forEach(p => {
                 const isFull = p.status === 'full';
-                const btn = document.createElement('button');
-                // Adjust styling
-                btn.className = `h-32 rounded-2xl shadow-md text-2xl font-bold flex flex-col items-center justify-center gap-2 transition-transform btn-press ${isFull ? 'bg-blue-100 text-blue-700 border-2 border-blue-300' : 'bg-gray-100 text-gray-400 border-2 border-dashed border-gray-300'}`;
-                btn.innerHTML = `
-                    <i class="fa-solid fa-pallet ${isFull ? 'text-4xl' : 'text-2xl opacity-50'}"></i>
-                    <span>E${p.id}</span>
-                    <span class="text-sm font-normal">${isFull ? 'มี Pallet' : 'ว่าง'}</span>
-                `;
-                btn.onclick = () => togglePallet(p.id);
+                const labelIndex = p.id - 1;
+                const btn = document.createElement('div');
+                btn.className = `h-32 rounded-2xl shadow-md text-2xl font-bold flex flex-col items-center justify-center gap-2 transition-transform btn-press cursor-pointer ${isFull ? 'bg-blue-100 text-blue-700 border-2 border-blue-300' : 'bg-gray-100 text-gray-400 border-2 border-dashed border-gray-300'}`;
+
+                if (appState.editMode) {
+                    btn.innerHTML = `<i class="fa-solid fa-pallet ${isFull ? 'text-4xl' : 'text-2xl opacity-50'}"></i>`;
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'w-[80%] text-center bg-gray-50 border-2 border-orange-300 rounded-lg text-lg p-1 outline-none';
+                    input.value = appState.palletLabels[labelIndex];
+                    input.onclick = (e) => e.stopPropagation();
+                    input.oninput = (e) => {
+                        appState.palletLabels[labelIndex] = e.target.value;
+                    };
+                    btn.appendChild(input);
+                    const hint = document.createElement('span');
+                    hint.className = 'text-[10px] text-orange-500 font-normal';
+                    hint.innerText = 'Editing...';
+                    btn.appendChild(hint);
+                } else {
+                    btn.innerHTML = `
+                        <i class="fa-solid fa-pallet ${isFull ? 'text-4xl' : 'text-2xl opacity-50'}"></i>
+                        <span>${appState.palletLabels[labelIndex]}</span>
+                        <span class="text-sm font-normal">${isFull ? 'มี Pallet' : 'ว่าง'}</span>
+                    `;
+                    btn.onclick = () => togglePallet(p.id);
+                }
                 grid.appendChild(btn);
             });
 
@@ -811,6 +1161,21 @@
             // Responsive: 2 cols on small, 3 on md, 4 on lg
             grid.className = `flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6 h-[500px] overflow-y-auto content-start justify-center w-full`;
 
+            // Calculate Sequence Numbers per Part
+            const occupied = appState.wh.filter(w => w.value !== null);
+            const groups = {};
+            occupied.forEach(w => {
+                if (!groups[w.value]) groups[w.value] = [];
+                groups[w.value].push(w);
+            });
+            // Assign sequence #
+            Object.keys(groups).forEach(part => {
+                groups[part].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                groups[part].forEach((w, idx) => {
+                    w.seqNum = idx + 1;
+                });
+            });
+
             // Update Status
             const emptyCount = appState.wh.filter(w => w.value === null).length;
             const fullCount = appState.wh.length - emptyCount;
@@ -822,15 +1187,37 @@
 
             pageData.forEach(w => {
                 const hasItem = w.value !== null;
-                const btn = document.createElement('button');
-                // Updated Style: h-32, icons, larger text
-                btn.className = `h-32 rounded-2xl shadow-md text-2xl font-bold flex flex-col items-center justify-center gap-2 transition-transform btn-press ${hasItem ? 'bg-purple-100 text-purple-700 border-2 border-purple-300' : 'bg-gray-100 text-gray-400 border-2 border-dashed border-gray-300'}`;
-                btn.innerHTML = `
-                    <i class="fa-solid ${hasItem ? 'fa-box-open text-4xl' : 'fa-warehouse text-2xl opacity-50'}"></i>
-                    <span class="text-sm text-gray-500 mb-1">WH${w.id}</span>
-                    <span class="${hasItem ? 'text-xl' : 'text-base font-normal'} truncate w-full text-center">${hasItem ? w.value : 'ว่าง'}</span>
-                `;
-                btn.onclick = () => handleWHClick(w.id);
+                const labelIndex = w.id - 1;
+                const btn = document.createElement('div');
+                btn.className = `relative h-32 rounded-2xl shadow-md text-2xl font-bold flex flex-col items-center justify-center gap-1 transition-transform btn-press cursor-pointer ${hasItem ? 'bg-purple-100 text-purple-700 border-2 border-purple-300' : 'bg-gray-100 text-gray-400 border-2 border-dashed border-gray-300'}`;
+
+                if (appState.editMode) {
+                    btn.innerHTML = `<i class="fa-solid ${hasItem ? 'fa-box-open text-4xl' : 'fa-warehouse text-2xl opacity-50'}"></i>`;
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'w-[80%] text-center bg-gray-50 border-2 border-orange-300 rounded-lg text-lg p-1 outline-none';
+                    input.value = appState.whLabels[labelIndex];
+                    input.onclick = (e) => e.stopPropagation();
+                    input.oninput = (e) => {
+                        appState.whLabels[labelIndex] = e.target.value;
+                    };
+                    btn.appendChild(input);
+                    const hint = document.createElement('span');
+                    hint.className = 'text-[10px] text-orange-500 font-normal';
+                    hint.innerText = 'Editing...';
+                    btn.appendChild(hint);
+                } else {
+                    btn.innerHTML = `
+                        ${hasItem ? `<span class="absolute top-2 right-3 text-xs font-bold text-purple-500">#${w.seqNum}</span>` : ''}
+                        <div class="flex items-center gap-2">
+                             <i class="fa-solid ${hasItem ? 'fa-box-open text-3xl' : 'fa-warehouse text-2xl opacity-50'}"></i>
+                             ${hasItem ? `<span class="text-xs font-bold bg-purple-500 text-white px-1.5 py-0.5 rounded opacity-80">x${w.amount.toLocaleString()}</span>` : ''}
+                        </div>
+                        <span class="text-xs text-gray-400 mt-1">${appState.whLabels[labelIndex]}</span>
+                        <span class="${hasItem ? 'text-lg' : 'text-base font-normal'} truncate w-full text-center px-1">${hasItem ? w.value : 'ว่าง'}</span>
+                    `;
+                    btn.onclick = () => handleWHClick(w.id);
+                }
                 grid.appendChild(btn);
             });
 
@@ -855,14 +1242,18 @@
                 // Clear
                 showConfirmModal(`เคลียร์ WH${id} (${w.value}) เป็น "ว่าง"?`, () => {
                     w.value = null;
+                    w.amount = 0;
+                    w.timestamp = null;
                     renderWH();
                     showToast(`WH${id} Cleared`);
                 });
             } else {
                 // Input
-                showInputModal(`กรอก Part สำหรับ WH${id}`, (val) => {
-                    if (val) {
-                        w.value = val;
+                showInputModal(`กรอก Part สำหรับ WH${id}`, (data) => {
+                    if (data && data.part) {
+                        w.value = data.part;
+                        w.amount = data.amount;
+                        w.timestamp = data.timestamp;
                         renderWH();
                         showToast(`WH${id} Updated`);
                     }
@@ -887,12 +1278,22 @@
             const pageData = appState.queue.slice(start, end);
 
             pageData.forEach((j, idx) => {
+                let displaySource = j.source;
+                if (j.type === 'Point' || j.type === 'Empty') {
+                    // Try to match Point #X from source string and replace with custom label
+                    const match = j.source.match(/Point #(\d+)/);
+                    if (match) {
+                        const pNum = match[1];
+                        displaySource = j.source.replace(`Point #${pNum}`, appState.pointLabels[pNum] || `Point #${pNum}`);
+                    }
+                }
+
                 const row = document.createElement('div');
                 row.className = "grid grid-cols-12 gap-4 items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:bg-red-50 cursor-pointer transition-colors";
                 row.innerHTML = `
                     <div class="col-span-1 text-center font-mono text-gray-500 text-sm">${start + idx + 1}</div>
                     <div class="col-span-2 font-bold text-gray-700">${j.type}</div>
-                    <div class="col-span-3 text-sm text-gray-600 truncate">${j.source}</div>
+                    <div class="col-span-3 text-sm text-gray-600 truncate">${displaySource}</div>
                     <div class="col-span-4 text-sm text-gray-800 font-medium truncate">${j.item} ${j.amount !== '-' ? '(x' + j.amount + ')' : ''}</div>
                     <div class="col-span-2 text-center">
                          <span class="px-2 py-1 rounded-full text-xs font-bold ${j.status === 'Pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600'}">${j.status}</span>
@@ -942,6 +1343,51 @@
 
             overlay.classList.remove('hidden');
             modal.classList.remove('hidden');
+        }
+
+        function exportQueueToCSV() {
+            if (appState.queue.length === 0) {
+                showToast("ไม่มีข้อมูลในคิวงานให้ส่งออก", "error");
+                return;
+            }
+
+            const headers = ["ID", "Type", "Source", "Item", "Amount", "Status", "Timestamp"];
+            const rows = appState.queue.map(j => {
+                let displaySource = j.source;
+                if (j.type === 'Point' || j.type === 'Empty') {
+                    const match = j.source.match(/Point #(\d+)/);
+                    if (match) {
+                        const pNum = match[1];
+                        displaySource = j.source.replace(`Point #${pNum}`, appState.pointLabels[pNum] || `Point #${pNum}`);
+                    }
+                }
+                return [
+                    j.id,
+                    j.type,
+                    `"${displaySource}"`,
+                    `"${j.item}"`,
+                    j.amount,
+                    j.status,
+                    new Date(j.timestamp).toLocaleString()
+                ];
+            });
+
+            const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+            const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            const now = new Date();
+            const filename = `JobQueue_${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}.csv`;
+
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("ส่งออกไฟล์ CSV สำเร็จ!");
         }
 
         // --- AMR Logic ---
@@ -1040,8 +1486,16 @@
         }
 
         function showInputModal(msg, callback) {
-            document.getElementById('modal-input-msg').innerText = msg;
+            // Updated for WH with multi-fields
             document.getElementById('modal-input-field').value = '';
+            document.getElementById('modal-input-amount').value = '';
+
+            // Default datetime to now
+            const now = new Date();
+            const tzoffset = now.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(now - tzoffset)).toISOString().slice(0, 16);
+            document.getElementById('modal-input-datetime').value = localISOTime;
+
             document.getElementById('modal-overlay').classList.remove('hidden');
             document.getElementById('modal-input').classList.remove('hidden');
             inputCallback = callback;
@@ -1060,8 +1514,17 @@
         };
 
         document.getElementById('modal-input-btn').onclick = () => {
-            const val = document.getElementById('modal-input-field').value;
-            if (inputCallback) inputCallback(val);
+            const part = document.getElementById('modal-input-field').value;
+            const amount = document.getElementById('modal-input-amount').value;
+            const datetime = document.getElementById('modal-input-datetime').value;
+
+            if (inputCallback) {
+                inputCallback({
+                    part: part,
+                    amount: parseInt(amount) || 0,
+                    timestamp: new Date(datetime).getTime()
+                });
+            }
             closeModal();
         };
 
