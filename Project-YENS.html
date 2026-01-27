@@ -185,7 +185,7 @@
             <p>การเชื่อมต่อระหว่างระบบ ERP บน Cloud และอุปกรณ์ควบคุมในคลังสินค้า ผ่านเทคโนโลยีที่ปลอดภัยและเสถียร</p>
             
             <div class="diagram-container">
-                <img src="https://placehold.co/800x400/2c3e50/ffffff?text=System+Architecture+Diagram%0A(Odoo+Cloud+%3C-%3E+Cloudflare+Tunnel+%3C-%3E+Pi+5+%3C-%3E+Hardware)" alt="System Architecture" class="diagram-img">
+                <img src="https://github.com/hirunnon/Mockup/blob/main/image/overview.png?raw=true" alt="System Architecture" class="diagram-img">
                 <p><em>แผนภาพแสดงการเชื่อมต่อ: Odoo ส่งคำสั่งผ่าน Tunnel มายัง Raspberry Pi เพื่อควบคุม Hardware</em></p>
             </div>
             <ul>
@@ -203,7 +203,7 @@
                 <div class="step-content">
                     <div class="step-title">Order & Payment (จุดเริ่มต้น)</div>
                     <p>พนักงานเปิด Invoice ในระบบ Odoo ระบบจะสร้าง <strong>Dynamic QR Code</strong> บนใบแจ้งหนี้อัตโนมัติ เมื่อบัญชียืนยันยอดเงิน (Reconcile) สถานะคำสั่งซื้อจะเปลี่ยนเป็น "Ready to Pick"</p>
-                    <img src="https://placehold.co/600x200/e67e22/ffffff?text=Step+1:+Odoo+Invoice+%26+QR+Code" alt="Step 1" class="step-img-placeholder">
+                    <img src="https://github.com/hirunnon/Mockup/blob/main/image/step-1.png?raw=true" alt="Step 1" class="step-img-placeholder">
                 </div>
             </div>
 
@@ -212,7 +212,7 @@
                 <div class="step-content">
                     <div class="step-title">Command Dispatch (ส่งคำสั่ง)</div>
                     <p>Odoo ส่งคำสั่งผ่าน <strong>MQTT</strong> วิ่งผ่าน Cloudflare Tunnel ลงมาที่โกดังขอนแก่น Raspberry Pi 5 รับคำสั่งและประมวลผลด้วย <strong>Node-RED</strong> ทันที (Latency ต่ำมาก)</p>
-                    <img src="https://placehold.co/600x200/2980b9/ffffff?text=Step+2:+Data+Transmission+(Cloud+to+Pi)" alt="Step 2" class="step-img-placeholder">
+                    <img src="https://github.com/hirunnon/Mockup/blob/main/image/step-2.png?raw=true" alt="Step 2" class="step-img-placeholder">
                 </div>
             </div>
 
@@ -225,7 +225,7 @@
                         <li><strong>สินค้าชิ้นเล็ก:</strong> สั่ง Solenoid เปิดล็อก -> สินค้าไหลลงราง (Gravity Chute)</li>
                         <li><strong>สินค้าหนัก:</strong> สั่ง Relay ขับสายพาน MDR -> ลำเลียงสินค้าออกมา</li>
                     </ul>
-                    <img src="https://placehold.co/600x200/27ae60/ffffff?text=Step+3:+Conveyor+%26+Solenoid+Action" alt="Step 3" class="step-img-placeholder">
+                    <img src="https://github.com/hirunnon/Mockup/blob/main/image/step-3.png?raw=true" alt="Step 3" class="step-img-placeholder">
                 </div>
             </div>
 
@@ -234,7 +234,7 @@
                 <div class="step-content">
                     <div class="step-title">Packing & Validation (จบงาน)</div>
                     <p>สินค้าไหลมารวมที่จุดแพ็ค หน้าจอ Kiosk แสดงรายการ พนักงานตรวจสอบและ <strong>สแกนบัตร (Badge)</strong> เพื่อยืนยัน ระบบส่ง XML-RPC กลับไปตัดสต็อกใน Odoo ทันที</p>
-                    <img src="https://placehold.co/600x200/8e44ad/ffffff?text=Step+4:+Badge+Scan+%26+Stock+Update" alt="Step 4" class="step-img-placeholder">
+                    <img src="https://github.com/hirunnon/Mockup/blob/main/image/step-4.png?raw=true" alt="Step 4" class="step-img-placeholder">
                 </div>
             </div>
         </section>
@@ -244,10 +244,10 @@
             <div class="hardware-grid">
                 <div class="hardware-card">
                     <h3>Main Controller</h3>
-                    <p><strong>Raspberry Pi 5 (Model B)</strong></p>
+                    <p><strong>Raspberry Pi 5</strong></p>
                     <ul>
                         <li>RAM: 16GB (High Performance)</li>
-                        <li>Storage: 256GB NVMe SSD (Official)</li>
+                        <li>Storage: 256GB NVMe SSD</li>
                         <li>Cooling: Active Cooler</li>
                     </ul>
                 </div>
@@ -275,8 +275,9 @@
     </div>
 
     <footer>
-        <p>Prepared by TKK for Project "Yens" | © 2024</p>
+        <p>Prepared by TKK for Project "Yens" | © 2026</p>
     </footer>
 
 </body>
+
 </html>
