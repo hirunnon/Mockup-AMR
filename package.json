@@ -1,0 +1,16 @@
+{
+  "name": "yens-node-red-project",
+  "version": "1.0.0",
+  "description": "Node-RED based project for Smart Warehouse",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "node-red": "^4.1.4"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}

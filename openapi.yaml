@@ -1,0 +1,80 @@
+openapi: 3.0.0
+info:
+  title: Yens Smart Warehouse API
+  version: 1.0.0
+  description: API for managing warehouse inventory and AMR fleet.
+
+paths:
+  /parts:
+    get:
+      summary: Get all parts
+      responses:
+        '200':
+          description: A list of parts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Part'
+
+  /stock-in:
+    post:
+      summary: Add stock to inventory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                qrData:
+                  type: string
+                  description: "Format: 001&date&partNo&qty&refId"
+      responses:
+        '200':
+          description: Stock added successfully
+
+  /toggle-urgent:
+    post:
+      summary: Toggle urgent status for a part
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                partId:
+                  type: string
+      responses:
+        '200':
+          description: Urgent status toggled
+
+  /amrs:
+    get:
+      summary: Get all AMRs
+    post:
+      summary: Add a new AMR
+
+  /orders:
+    get:
+      summary: Get all orders
+    post:
+      summary: Create a new order
+
+components:
+  schemas:
+    Part:
+      type: object
+      properties:
+        id:
+          type: string
+        partNo:
+          type: string
+        qtyStock:
+          type: integer
+        current:
+          type: integer
+        isUrgent:
+          type: boolean
